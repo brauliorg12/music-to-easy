@@ -75,8 +75,8 @@ export class EventHandler {
       // Pequeño delay para evitar rate limits
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Intentar eliminar el mensaje anterior de ayuda
-      await this.cleanupPreviousMessage(channel, botState);
+      // Limpiar mensajes anteriores de nuestra app
+      await this.cleanupPreviousMessages(channel, botState);
 
       // Crear nuevo mensaje de ayuda
       const { embed, components } = createHelpMessage();
@@ -91,6 +91,62 @@ export class EventHandler {
       this.logRepositioning(message, channel);
     } catch (error) {
       console.error('[Monitor] Error al reposicionar panel de ayuda:', error);
+    }
+  }
+
+  private async cleanupPreviousMessages(channel: TextChannel, botState: any): Promise<void> {
+    try {
+      // Obtener los últimos mensajes del canal
+      const messages = await channel.messages.fetch({ limit: 20 });
+      
+      // Filtrar mensajes de nuestra app
+      const ourMessages = messages.filter(msg => 
+        msg.author.id === this.client.user?.id && 
+        msg.embeds.length > 0 && 
+        msg.embeds[0].title?.includes('Comandos de Música')
+      );
+
+      // Eliminar todos nuestros mensajes de ayuda anteriores
+      for (const ourMessage of ourMessages.values()) {
+        try {
+          await ourMessage.delete();
+          console.log('[Monitor] Mensaje anterior de ayuda eliminado');
+        } catch (error: any) {
+          // Ignorar errores de mensajes ya eliminados
+          if (error.code !== 10008) {
+            console.log(`[Monitor] No se pudo eliminar mensaje: ${error.message}`);
+          }
+        }
+      }
+
+      // También limpiar el mensaje específico del estado si existe
+      const lastMessageId = botState.getLastMessageId();
+      if (lastMessageId) {
+        try {
+          const oldMessage = await channel.messages.fetch(lastMessageId);
+          await oldMessage.delete();
+          console.log('[Monitor] Mensaje del estado eliminado correctamente');
+        } catch (error: any) {
+          // Ya manejado en el bucle anterior
+        }
+      }
+      
+    } catch (error: any) {
+      console.log(`[Monitor] Error en limpieza masiva: ${error.message}`);
+      
+      // Fallback: limpiar solo el mensaje del estado
+      const lastMessageId = botState.getLastMessageId();
+      if (lastMessageId) {
+        try {
+          const oldMessage = await channel.messages.fetch(lastMessageId);
+          await oldMessage.delete();
+        } catch (error: any) {
+          // Ignorar errores
+        }
+      }
+    } finally {
+      // Limpiar el ID siempre
+      botState.clearLastMessageId();
     }
   }
 
@@ -159,36 +215,6 @@ export class EventHandler {
       console.log(
         `[Monitor] Panel reposicionado tras comando de música de usuario ${authorName} en #${channel.name}: "${messagePreview}"`
       );
-    }
-  }
-
-  private async cleanupPreviousMessage(
-    channel: TextChannel,
-    botState: any
-  ): Promise<void> {
-    const lastMessageId = botState.getLastMessageId();
-    if (!lastMessageId) return;
-
-    try {
-      const oldMessage = await channel.messages.fetch(lastMessageId);
-      await oldMessage.delete();
-      console.log('[Monitor] Mensaje anterior eliminado correctamente');
-    } catch (error: any) {
-      // El mensaje ya no existe o no se pudo eliminar
-      if (error.code === 10008) {
-        console.log('[Monitor] El mensaje anterior ya fue eliminado');
-      } else if (error.code === 50013) {
-        console.log('[Monitor] Sin permisos para eliminar mensaje anterior');
-      } else if (error.code === 50035) {
-        console.log('[Monitor] Mensaje anterior no válido');
-      } else {
-        console.log(
-          `[Monitor] No se pudo eliminar mensaje anterior: ${error.message}`
-        );
-      }
-    } finally {
-      // Limpiar el ID siempre, independientemente del resultado
-      botState.clearLastMessageId();
     }
   }
 

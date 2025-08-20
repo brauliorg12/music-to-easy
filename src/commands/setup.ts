@@ -6,14 +6,15 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  EmbedBuilder,
 } from 'discord.js';
 import { createHelpMessage } from '../utils/helpMessage';
 import BotState from '../utils/botState';
 import { CUSTOM_IDS } from '../utils/constants';
 
 export const data = new SlashCommandBuilder()
-  .setName('setup')
-  .setDescription('Activa el sistema de ayuda de música en este canal.')
+  .setName('music')
+  .setDescription('Activa el panel de ayuda de música en este canal.')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
 export async function execute(interaction: CommandInteraction) {
@@ -41,10 +42,10 @@ export async function execute(interaction: CommandInteraction) {
           if (targetChannel) {
             const lastMessage = await targetChannel.messages.fetch(lastMessageId);
             await lastMessage.delete();
-            console.log(`[Setup] Mensaje anterior eliminado del canal #${targetChannel.name}`);
+            console.log(`[Music] Mensaje anterior eliminado del canal #${targetChannel.name}`);
           }
         } catch (error) {
-          console.log('[Setup] Mensaje anterior ya no existe o no se pudo eliminar');
+          console.log('[Music] Mensaje anterior ya no existe o no se pudo eliminar');
         }
       }
     }
@@ -66,8 +67,27 @@ export async function execute(interaction: CommandInteraction) {
     botState.setLastMessageId(message.id);
 
     console.log(
-      `[Setup] Sistema activado en canal #${channel.name} (${interaction.channelId}) por ${interaction.user.tag}`
+      `[Music] Panel activado en canal #${channel.name} (${interaction.channelId}) por ${interaction.user.tag}`
     );
+
+    // Crear embed card para el mensaje de confirmación
+    const confirmationEmbed = new EmbedBuilder()
+      .setColor(0x00FF7F)
+      .setTitle('🎵 Panel de música activado')
+      .addFields(
+        { 
+          name: '📍 Canal configurado', 
+          value: `${channel}`, 
+          inline: false 
+        },
+        { 
+          name: '✨ Funcionalidad', 
+          value: 'El panel se mantendrá siempre al final para fácil acceso', 
+          inline: false 
+        }
+      )
+      .setFooter({ text: '¡Ahora puedes usar los botones del panel!' })
+      .setTimestamp();
 
     // Crear botón de cerrar para el mensaje de confirmación
     const closeButton = new ButtonBuilder()
@@ -78,16 +98,16 @@ export async function execute(interaction: CommandInteraction) {
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton);
 
-    // Enviar confirmación adicional con botón de cerrar
+    // Enviar confirmación adicional con embed card
     await interaction.followUp({
-      content: `✅ **Sistema Music to Easy activado**\n📍 Canal configurado: ${channel}\n🎵 El bot ahora reposicionará automáticamente el panel cuando aparezcan nuevos mensajes.`,
+      embeds: [confirmationEmbed],
       components: [row],
       ephemeral: true,
     });
   } catch (error) {
-    console.error(`[Setup] Error al activar el sistema:`, error);
+    console.error(`[Music] Error al activar el panel:`, error);
     
-    const errorMessage = '❌ Hubo un error al activar el sistema. Inténtalo de nuevo.';
+    const errorMessage = '❌ Hubo un error al activar el panel de música. Inténtalo de nuevo.';
     
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({

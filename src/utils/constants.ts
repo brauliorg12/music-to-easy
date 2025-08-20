@@ -4,6 +4,7 @@ export const CUSTOM_IDS = {
   SKIP: 'skip',
   QUEUE: 'queue',
   VOLUME: 'volume',
+  HELP: 'help',
   CLOSE: 'close' // Solo para mensajes ephemeral
 } as const;
 

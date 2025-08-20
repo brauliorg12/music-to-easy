@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { REST, Routes } from 'discord.js';
-import { data as setupCommand } from './commands/setup';
+import { data as musicCommand } from './commands/setup';
 import { data as disableCommand } from './commands/disable';
 
 const TOKEN = process.env.DISCORD_TOKEN;
@@ -13,7 +13,7 @@ if (!TOKEN || !CLIENT_ID) {
 }
 
 const commands = [
-    setupCommand.toJSON(),
+    musicCommand.toJSON(),
     disableCommand.toJSON()
 ];
 

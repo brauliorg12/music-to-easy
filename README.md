@@ -1,43 +1,46 @@
 # 🎵 Music to Easy
 
-Un bot de Discord que hace que usar comandos de música sea **súper fácil** con botones intuitivos y comandos listos para copiar.
+Bot de Discord que facilita el uso de comandos de música de otros bots mediante un **panel de botones persistente** y comandos slash de configuración. Music to Easy no reproduce música directamente, sino que te ayuda a usar otros bots de música de forma más sencilla.
 
 ![Version](https://img.shields.io/github/v/release/brauliorg12/music-to-easy)
 ![License](https://img.shields.io/github/license/brauliorg12/music-to-easy)
 ![Docker](https://img.shields.io/docker/automated/brauliorg12/music-to-easy)
 
-## ✨ ¿Por qué Music to Easy?
+---
 
-¿Cansado de recordar comandos como `m!p`, `m!skip`, `m!queue`? **Music to Easy** elimina esa fricción:
+## 🚀 ¿Qué es Music to Easy?
 
-- 🚫 **No más**: Escribir `m!p https://youtube.com/...`
-- ✅ **Ahora**: Click en ▶️ → Pegar link → ¡Listo!
+Music to Easy crea un **panel de control** con botones en el canal que elijas. Al pulsar un botón, el bot te muestra el comando listo para copiar y pegar en el chat, facilitando el uso de bots de música populares (Mee6, Jockie, FredBoat, etc).
 
-## 🚀 Funcionalidades
+---
 
-### 🎛️ Panel de Control Inteligente
+## 🟢 Comandos Slash Disponibles
 
-- **Persistente**: Siempre visible al final del canal
-- **Auto-reposicionamiento**: Se mueve automáticamente cuando otros bots escriben
-- **Botones intuitivos**: ▶️ Play, ⏹️ Stop, ⏭️ Skip, 📜 Queue, 🔊 Volume
+| Comando        | Descripción                                                        | Permisos         |
+| -------------- | ------------------------------------------------------------------ | ---------------- |
+| `/music`       | Activa el panel de control de música en el canal actual            | Administrador    |
+| `/disable`     | Desactiva el sistema y elimina el panel del canal configurado      | Administrador    |
 
-### 📋 Comandos Soportados
+> **Nota:** Estos son los únicos comandos propios de este bot.
 
-| Botón         | Comando            | Descripción                     |
-| ------------- | ------------------ | ------------------------------- |
-| ▶️ **Play**   | `m!p <canción>`    | Reproduce música                |
-| ⏹️ **Stop**   | `m!leave`          | Detiene y desconecta el bot     |
-| ⏭️ **Skip**   | `m!next`           | Salta a la siguiente canción    |
-| 📜 **Lista de Reproducción**  | `m!queue`          | Muestra la cola de reproducción |
-| 🔊 **Volumen** | `m!volume <1-100>` | Ajusta el volumen               |
+---
 
-### 🎯 Flujo Super Fácil
+## 🎛️ Panel de Botones
 
-1. Administrador ejecuta `/setup` una sola vez
-2. Panel aparece automáticamente
-3. Usuario: Click en botón → Aparece comando → Copia → Pega → ¡Música!
+El panel incluye botones para las acciones más comunes (Play, Stop, Skip, Queue, Volume, Ayuda). Al pulsar un botón, el bot te muestra el comando correspondiente para que lo copies y pegues en el chat del bot de música que uses.
 
-## 🛠️ Instalación Rápida
+---
+
+## ✨ Características principales
+
+- **Panel persistente:** Siempre visible y se reposiciona automáticamente si otros mensajes lo desplazan.
+- **Botones intuitivos:** Obtén los comandos de música más usados con un click.
+- **Ayuda integrada:** Explicaciones claras sobre cómo usar el panel.
+- **Fácil configuración:** Solo dos comandos para activar o desactivar el sistema.
+
+---
+
+## 🛠️ Instalación
 
 ### Opción 1: Docker (Recomendado) 🐳
 
@@ -98,38 +101,19 @@ GUILD_ID=tu_guild_id_aqui  # Opcional para testing
 
 **URL Generator:** `bot` + `applications.commands` scopes
 
-## 🎮 Uso
+## 🎮 Uso rápido
 
-### Comandos Slash Disponibles
-
-| Comando     | Descripción                                    | Permisos         |
-| ----------- | ---------------------------------------------- | ---------------- |
-| `/setup`    | Activa el sistema en el canal actual         | Administrador    |
-| `/disable`  | Desactiva el sistema completamente           | Administrador    |
-
-### Activar Sistema
-
-```bash
-# En Discord
-/setup
-
-# ¡Ya está listo! Usa los botones del panel
-```
-
-### Desactivar Sistema
-
-```bash
-# En Discord
-/disable
-
-# El panel se eliminará y el bot dejará de monitorear
-```
+1. Un administrador ejecuta `/music` en el canal deseado.
+2. El panel de botones aparece y se mantiene siempre visible.
+3. Los usuarios usan los botones para obtener el comando y lo pegan en el chat del bot de música.
+4. El botón de ayuda muestra instrucciones claras sobre cómo usar el panel.
 
 ### ✅ Características de los Mensajes
 
 - **Botón Cerrar**: Todos los mensajes ephemeral incluyen botón ❌ para cerrar
 - **Auto-eliminación**: El panel se reposiciona automáticamente
 - **Feedback claro**: Confirmaciones con nombres de canales y servidores
+- **Botón de Ayuda**: Guía completa de comandos para diferentes bots de música
 
 ## 🏗️ Para Desarrolladores
 
@@ -137,7 +121,7 @@ GUILD_ID=tu_guild_id_aqui  # Opcional para testing
 
 ```
 src/
-├── commands/          # Slash commands (/setup, /disable)
+├── commands/          # Slash commands (/music, /disable)
 ├── core/             # Core classes (BotClient, EventHandler)
 ├── handlers/          # Base handlers (Template Pattern)
 ├── interactions/      # Button handlers (Command Pattern)
@@ -240,8 +224,6 @@ npm run deploy     # Desplegar comandos slash globalmente
 npm run clear-commands  # Limpiar comandos globales
 
 # Testing rápido (comandos de servidor)
-ts-node src/deploy-guild-commands.ts  # Deploy inmediato en servidor específico
-```
 
 ### 🚀 Deploy de Comandos
 
