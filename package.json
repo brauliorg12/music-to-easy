@@ -1,7 +1,7 @@
 {
-  "name": "discord-music-helper-bot",
+  "name": "music-to-easy",
   "version": "1.0.0",
-  "description": "A Discord bot that provides an intuitive interface for music bot commands with buttons and easy copy functionality",
+  "description": "A Discord bot that makes music commands easy with buttons and intuitive interface",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -20,7 +20,9 @@
     "slash-commands",
     "buttons",
     "ui",
-    "helper"
+    "helper",
+    "easy",
+    "simple"
   ],
   "author": {
     "name": "Braulio Rodriguez",
@@ -30,12 +32,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/brauliorg12/discord-music-buttons.git"
+    "url": "https://github.com/brauliorg12/music-to-easy.git"
   },
   "bugs": {
-    "url": "https://github.com/brauliorg12/discord-music-buttons/issues"
+    "url": "https://github.com/brauliorg12/music-to-easy/issues"
   },
-  "homepage": "https://github.com/brauliorg12/discord-music-buttons#readme",
+  "homepage": "https://github.com/brauliorg12/music-to-easy#readme",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"

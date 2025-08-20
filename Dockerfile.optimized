@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:18-alpine3.18.4 AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY tsconfig.json ./
 RUN npm run build
 
 # Production stage  
-FROM node:18-alpine AS production
+FROM node:18-alpine3.18.4 AS production
 
 # Install security updates and dumb-init
 RUN apk update && apk add --no-cache dumb-init
@@ -41,6 +41,12 @@ COPY --from=builder /app/dist ./dist
 # Set ownership and switch to non-root user
 RUN chown -R botuser:nodejs /app
 USER botuser
+
+# Labels
+LABEL org.opencontainers.image.title="Music to Easy"
+LABEL org.opencontainers.image.description="Discord bot that makes music commands easy with buttons"
+LABEL org.opencontainers.image.source="https://github.com/brauliorg12/music-to-easy"
+LABEL org.opencontainers.image.author="Braulio Rodriguez <cubanovainfo@gmail.com>"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

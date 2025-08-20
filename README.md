@@ -1,328 +1,281 @@
-# 🎵 Discord Music Helper Bot
+# 🎵 Music to Easy
 
-Un bot de Discord elegante y moderno que simplifica el uso de bots de música mediante una interfaz intuitiva con botones y comandos fáciles de copiar.
+Un bot de Discord que hace que usar comandos de música sea **súper fácil** con botones intuitivos y comandos listos para copiar.
 
-## ✨ Características
+![Version](https://img.shields.io/github/v/release/brauliorg12/music-to-easy)
+![License](https://img.shields.io/github/license/brauliorg12/music-to-easy)
+![Docker](https://img.shields.io/docker/automated/brauliorg12/music-to-easy)
 
-- **🎛️ Panel de Control Persistente**: Mantiene un mensaje de ayuda siempre visible al final del canal
-- **🔄 Auto-reposicionamiento**: Se recoloca automáticamente cuando otros bots escriben mensajes
-- **📱 Interfaz Moderna**: Botones intuitivos para cada comando de música
-- **📋 Copia Fácil**: Un clic para copiar comandos, sin necesidad de recordar prefijos
-- **🎯 Mensajes Efímeros**: Respuestas privadas que solo ve el usuario
-- **🏗️ Código Profesional**: Arquitectura limpia, tipado fuerte y patrones de diseño
+## ✨ ¿Por qué Music to Easy?
+
+¿Cansado de recordar comandos como `m!p`, `m!skip`, `m!queue`? **Music to Easy** elimina esa fricción:
+
+- 🚫 **No más**: Escribir `m!p https://youtube.com/...`
+- ✅ **Ahora**: Click en ▶️ → Pegar link → ¡Listo!
 
 ## 🚀 Funcionalidades
 
-### Comandos Soportados
+### 🎛️ Panel de Control Inteligente
 
-- **▶️ Play**: `m!p <canción>` - Reproduce música
-- **⏹️ Stop**: `m!leave` - Detiene y desconecta el bot
-- **⏭️ Skip**: `m!next` - Salta a la siguiente canción
-- **📜 Queue**: `m!queue` - Muestra la cola de reproducción
-- **🔊 Volume**: `m!volume <1-100>` - Ajusta el volumen
+- **Persistente**: Siempre visible al final del canal
+- **Auto-reposicionamiento**: Se mueve automáticamente cuando otros bots escriben
+- **Botones intuitivos**: ▶️ Play, ⏹️ Stop, ⏭️ Skip, 📜 Queue, 🔊 Volume
 
-### Flujo de Usuario
+### 📋 Comandos Soportados
 
-1. Administrador ejecuta `/setup` en un canal
-2. Aparece un panel con botones de comandos
-3. Usuario hace clic en un botón (ej: Play)
-4. Aparece mensaje efímero con el comando listo para copiar
-5. Usuario copia el comando y lo pega en el chat
-6. El bot de música responde normalmente
+| Botón         | Comando            | Descripción                     |
+| ------------- | ------------------ | ------------------------------- |
+| ▶️ **Play**   | `m!p <canción>`    | Reproduce música                |
+| ⏹️ **Stop**   | `m!leave`          | Detiene y desconecta el bot     |
+| ⏭️ **Skip**   | `m!next`           | Salta a la siguiente canción    |
+| 📜 **Queue**  | `m!queue`          | Muestra la cola de reproducción |
+| 🔊 **Volume** | `m!volume <1-100>` | Ajusta el volumen               |
 
-## 🛠️ Instalación
+### 🎯 Flujo Super Fácil
 
-### Prerrequisitos
+1. Administrador ejecuta `/setup` una sola vez
+2. Panel aparece automáticamente
+3. Usuario: Click en botón → Aparece comando → Copia → Pega → ¡Música!
 
-- [Node.js](https://nodejs.org/) v18 o superior
-- [npm](https://www.npmjs.com/) o [yarn](https://yarnpkg.com/)
-- Un bot de música existente en tu servidor (Mee6, Groovy, etc.)
+## 🛠️ Instalación Rápida
 
-### 1. Configuración en Discord
+### Opción 1: Docker (Recomendado) 🐳
 
-1. Ve al [Portal de Desarrolladores de Discord](https://discord.com/developers/applications)
-2. Crea una nueva aplicación
-3. Ve a la sección "Bot" y crea un bot
-4. **Importante**: Activa "MESSAGE CONTENT INTENT" en Privileged Gateway Intents
-5. Copia el token del bot
+```bash
+# Clonar y configurar
+git clone https://github.com/brauliorg12/music-to-easy.git
+cd music-to-easy
+cp .env.example .env
+# Editar .env con tus credenciales
 
-### 2. Instalación del Proyecto
+# Ejecutar con un comando
+docker-compose up
+```
+
+### Opción 2: Instalación Manual
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/tusuario/discord-music-buttons.git
-cd discord-music-buttons
+git clone https://github.com/brauliorg12/music-to-easy.git
+cd music-to-easy
 
-# Instalar dependencias
+# Instalar y configurar
 npm install
-
-# Configurar variables de entorno
 cp .env.example .env
+# Editar .env con tus credenciales
+
+# Desplegar comandos y ejecutar
+npm run deploy
+npm run dev
 ```
 
-### 3. Configuración de Variables
+## ⚙️ Configuración Discord
 
-Edita el archivo `.env`:
+### 1. Crear Bot en Discord
+
+1. Ve a [Discord Developer Portal](https://discord.com/developers/applications)
+2. "New Application" → Nombre: "Music to Easy"
+3. Sección "Bot" → "Add Bot"
+4. **IMPORTANTE**: Activar "MESSAGE CONTENT INTENT"
+5. Copiar token
+
+### 2. Variables de Entorno
 
 ```env
-# Token del bot de Discord
-DISCORD_TOKEN=tu_token_aqui
-
-# ID de la aplicación (Client ID)
+DISCORD_TOKEN=tu_token_de_discord_aqui
 CLIENT_ID=tu_client_id_aqui
-
-# ID del servidor para pruebas (opcional)
-GUILD_ID=tu_guild_id_aqui
+GUILD_ID=tu_guild_id_aqui  # Opcional para testing
 ```
 
-**¿Cómo obtener estos valores?**
+### 3. Invitar Bot
 
-- **CLIENT_ID**: En el portal de desarrolladores, pestaña "OAuth2" → "General"
-- **GUILD_ID**: Clic derecho en tu servidor → "Copiar ID del servidor" (requiere modo desarrollador)
+**Permisos necesarios:**
 
-### 4. Invitar el Bot
+- `View Channels` - Ver canales
+- `Send Messages` - Enviar mensajes
+- `Read Message History` - Leer historial
+- `Manage Messages` - Gestionar mensajes (para cerrar efímeros)
 
-1. Ve a "OAuth2" → "URL Generator" en el portal de desarrolladores
-2. Selecciona los scopes: `bot` y `applications.commands`
-3. Permisos mínimos requeridos:
-   - `View Channels`
-   - `Send Messages`
-   - `Read Message History`
-   - `Manage Messages` (para eliminar mensajes efímeros)
+**URL Generator:** `bot` + `applications.commands` scopes
 
-## 🚀 Uso
+## 🎮 Uso
 
 ```bash
-# Desplegar comandos slash (solo una vez)
-npm run deploy
+# En Discord
+/setup
 
-# Iniciar en desarrollo
-npm run dev
-
-# Iniciar en producción
-npm run start
+# ¡Ya está listo! Usa los botones del panel
 ```
 
-### En Discord
+## 🏗️ Para Desarrolladores
 
-1. Ejecuta `/setup` en el canal donde quieres la ayuda de música
-2. ¡El panel estará listo para usar!
-
-## 🏗️ Arquitectura del Proyecto
+### Arquitectura Clean
 
 ```
 src/
-├── commands/           # Comandos slash
-│   └── setup.ts       # Comando de configuración
-├── handlers/          # Manejadores base
-│   └── MusicCommandHandler.ts
-├── interactions/      # Manejadores de botones
-│   ├── play.ts
-│   ├── stop.ts
-│   ├── skip.ts
-│   ├── queue.ts
-│   ├── volume.ts
-│   └── close.ts
-├── utils/            # Utilidades
-│   ├── constants.ts  # IDs y comandos
-│   ├── helpMessage.ts # Generador de mensajes
-│   ├── buttonHelpers.ts # Helpers para botones
-│   └── botState.ts   # Estado del bot
-└── index.ts          # Punto de entrada
+├── commands/          # Slash commands (/setup)
+├── handlers/          # Base handlers (Template Pattern)
+├── interactions/      # Button handlers (Command Pattern)
+├── utils/            # Utilities & helpers (Factory Pattern)
+└── index.ts          # Main entry point (Singleton Pattern)
 ```
 
-### Patrones de Diseño Utilizados
+### Agregar Nuevo Comando
 
-- **Singleton**: Para el estado del bot
-- **Template Method**: Handler base para comandos de música
-- **Factory**: Para creación de botones y mensajes
-- **Command Pattern**: Para manejo de interacciones
-
-## 🔧 Personalización
-
-### Agregar Nuevos Comandos
-
-1. Agrega el comando en `src/utils/constants.ts`:
+1. **Constants:**
 
 ```typescript
+// src/utils/constants.ts
 export const CUSTOM_IDS = {
-  // ... existentes
+  // ...existentes
   PAUSE: 'pause',
 };
 
 export const MUSIC_COMMANDS = {
-  // ... existentes
+  // ...existentes
   PAUSE: 'm!pause',
 };
 ```
 
-2. Crea el manejador en `src/interactions/pause.ts`:
+2. **Handler:**
 
 ```typescript
-import { ButtonInteraction } from 'discord.js';
+// src/interactions/pause.ts
 import { MusicCommandHandler } from '../handlers/MusicCommandHandler';
-import { MUSIC_COMMANDS } from '../utils/constants';
 
 class PauseHandler extends MusicCommandHandler {
-  protected getCommand(): string {
+  protected getCommand() {
     return MUSIC_COMMANDS.PAUSE;
   }
-
-  protected getInstruction(): string {
+  protected getInstruction() {
     return '💡 Pégalo en el chat para pausar';
   }
 }
 
-const pauseHandler = new PauseHandler();
-
 export async function execute(interaction: ButtonInteraction) {
-  await pauseHandler.execute(interaction);
+  await new PauseHandler().execute(interaction);
 }
 ```
 
-3. Añade el botón en `src/utils/helpMessage.ts`
+3. **UI (helpMessage.ts):** Agregar botón al panel
 
-### Cambiar Bot de Música
+### 🎨 Personalización
 
-Simplemente modifica los comandos en `MUSIC_COMMANDS`:
+**Cambiar bot de música:**
 
 ```typescript
-// Para cambiar de Mee6 a otro bot
+// Cambiar de Mee6 a otro bot
 export const MUSIC_COMMANDS = {
   PLAY: '!play ', // En lugar de 'm!p '
   STOP: '!disconnect', // En lugar de 'm!leave'
-  // ... etc
+  // ...
 };
 ```
 
-## 🐳 Uso con Docker
+## 🐳 Docker & CI/CD
 
-### Desarrollo rápido
-
-```bash
-# Construir y ejecutar con Docker Compose
-make docker-dev
-
-# O manualmente
-docker-compose --profile dev up
-```
-
-### Producción
+### Imágenes Pre-construidas
 
 ```bash
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales
+# Desde GitHub Container Registry
+docker run --env-file .env ghcr.io/brauliorg12/music-to-easy:latest
 
-# Ejecutar en producción
-make docker-prod
-
-# O manualmente
-docker-compose up discord-music-bot
+# Multi-arquitectura: AMD64 + ARM64
 ```
 
-### Comandos Docker útiles
+### Pipeline Automática
+
+- ✅ Tests en cada PR
+- 🐳 Build multi-arch automático
+- 🔒 Security scan con Trivy
+- 📦 Publicación en GitHub Registry
+- 🚀 Deploy en rama main
+
+### Comandos Útiles
 
 ```bash
-make help                 # Ver todos los comandos disponibles
-make docker-build         # Construir imagen de producción
-make docker-build-dev     # Construir imagen de desarrollo
-make logs                 # Ver logs del contenedor
-make docker-clean         # Limpiar imágenes y contenedores
+make help           # Ver comandos disponibles
+make docker-dev     # Desarrollo con hot-reload
+make docker-prod    # Producción
+make logs          # Ver logs en tiempo real
 ```
+
+## ⚡ Scripts NPM
+
+```bash
+npm run dev        # Desarrollo con hot-reload
+npm run build      # Compilar TypeScript
+npm run start      # Producción (build + start)
+npm run deploy     # Desplegar comandos slash
+```
+
+## ❓ Solución de Problemas
+
+### 🚫 "Bot no responde"
+
+- ✅ Verificar `DISCORD_TOKEN` en `.env`
+- ✅ Bot tiene permisos necesarios
+- ✅ `MESSAGE_CONTENT_INTENT` activado
+
+### 🚫 "Comandos no cargan"
+
+- ✅ Ejecutar `npm run deploy` después de cambios
+- ✅ Verificar `CLIENT_ID` correcto
+- ✅ Revisar logs por errores
+
+### 🚫 "Panel no se reposiciona"
+
+- ✅ Bot tiene permisos de `Manage Messages`
+- ✅ Ejecutado `/setup` en canal correcto
 
 ## 🤝 Contribuir
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📝 Scripts Disponibles
-
 ```bash
-npm run dev      # Desarrollo con recarga automática
-npm run start    # Producción (compila y ejecuta)
-npm run deploy   # Despliega comandos slash a Discord
-npm run build    # Compila TypeScript a JavaScript
+# Proceso estándar GitHub
+git checkout -b feature/amazing-feature
+git commit -m "Add: amazing feature"
+git push origin feature/amazing-feature
+# → Abrir Pull Request
 ```
 
-## 🚀 CI/CD y Deployment
+## 📊 Estado del Proyecto
 
-Este proyecto incluye una pipeline completa de CI/CD con GitHub Actions:
+![Build Status](https://github.com/brauliorg12/music-to-easy/workflows/CI%2FCD%20Pipeline/badge.svg)
+![Security](https://github.com/brauliorg12/music-to-easy/workflows/Security%20Scan/badge.svg)
+![Docker](https://github.com/brauliorg12/music-to-easy/workflows/Docker/badge.svg)
 
-### Características del CI/CD
+## ⚠️ Limitaciones
 
-- ✅ **Pruebas automáticas** en cada push y pull request
-- 🐳 **Build de imagen Docker** multi-arquitectura (AMD64 + ARM64)
-- 🔒 **Escaneo de seguridad** con Trivy
-- 📦 **Publicación automática** en GitHub Container Registry
-- 🚀 **Deploy automático** en la rama main
-- 🏷️ **Releases automáticos** con tags
-
-### Registry de Imágenes
-
-Las imágenes se publican automáticamente en:
-
-```
-ghcr.io/brauliorg12/discord-music-buttons:latest
-ghcr.io/brauliorg12/discord-music-buttons:v1.0.0
-```
-
-### Usando la imagen pre-construida
-
-```bash
-# Ejecutar desde GitHub Container Registry
-docker run --env-file .env ghcr.io/brauliorg12/discord-music-buttons:latest
-
-# O con docker-compose
-# Cambiar en docker-compose.yml:
-# image: ghcr.io/brauliorg12/discord-music-buttons:latest
-```
-
-## ⚠️ Limitaciones Conocidas
-
-- **Mensajes de Bot**: Discord siempre marca los mensajes de webhooks como "APP", la mayoría de bots de música los ignoran
-- **Solución Implementada**: El bot proporciona comandos listos para copiar y pegar manualmente
-- **Compatibilidad**: Funciona con cualquier bot de música basado en prefijos de texto
-
-## 🐛 Solución de Problemas
-
-### El bot no responde
-
-- Verifica que el token sea correcto
-- Asegúrate de que el bot tenga los permisos necesarios
-- Revisa que MESSAGE_CONTENT_INTENT esté activado
-
-### Los comandos no se cargan
-
-- Ejecuta `npm run deploy` después de cambios
-- Verifica CLIENT_ID en el archivo .env
-- Revisa los logs por errores de sintaxis
-
-### El mensaje de ayuda no se reposiciona
-
-- Verifica que el bot tenga permisos para enviar/eliminar mensajes
-- Asegúrate de que esté monitoreando el canal correcto
+- **Discord Webhook Limitation**: Los mensajes de bots siempre tienen etiqueta "APP"
+- **Solución**: Comandos listos para copy-paste manual (más rápido que escribir)
+- **Compatibilidad**: Funciona con cualquier bot de música con prefijos
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+MIT License - Ver [LICENSE](LICENSE) para detalles.
 
 ## 👤 Autor
 
 **Braulio Rodriguez**
 
-- GitHub: [@brauliorg12](https://github.com/brauliorg12)
-- Discord: burlon23
+- 🐙 GitHub: [@brauliorg12](https://github.com/brauliorg12)
+- 💬 Discord: burlon23
+- 📧 Email: cubanovainfo@gmail.com
 
 ## 🙏 Agradecimientos
 
-- [Discord.js](https://discord.js.org/) por la excelente librería
-- Comunidad de Discord por el feedback
-- Desarrolladores de bots de música que inspiraron este proyecto
+- [Discord.js](https://discord.js.org/) - Excelente librería
+- Comunidad Discord - Feedback invaluable
+- Desarrolladores de bots música - Inspiración
 
 ---
 
-⭐ ¡Dale una estrella si este proyecto te fue útil!
+<div align="center">
+
+**¿Te gusta Music to Easy?**
+
+⭐ ¡Dale una estrella! ⭐
+
+[🐛 Reportar Bug](https://github.com/brauliorg12/music-to-easy/issues) • [✨ Solicitar Feature](https://github.com/brauliorg12/music-to-easy/issues) • [💬 Discusiones](https://github.com/brauliorg12/music-to-easy/discussions)
+
+</div>

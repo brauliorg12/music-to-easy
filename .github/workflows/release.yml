@@ -67,10 +67,12 @@ jobs:
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         labels: |
-          org.opencontainers.image.title=Discord Music Helper Bot
-          org.opencontainers.image.description=A Discord bot for music command assistance
+          org.opencontainers.image.title=Music to Easy
+          org.opencontainers.image.description=Discord bot that makes music commands easy with buttons
           org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}
           org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.author=Braulio Rodriguez <cubanovainfo@gmail.com>
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
@@ -81,7 +83,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.version.outputs.VERSION }}
+        release_name: Music to Easy ${{ steps.version.outputs.VERSION }}
         body_path: CHANGELOG.md
         draft: false
         prerelease: false

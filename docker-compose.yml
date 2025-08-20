@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  discord-music-bot:
+  music-to-easy:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: discord-music-helper
+    container_name: music-to-easy
     restart: unless-stopped
     environment:
       - NODE_ENV=production
@@ -32,11 +32,11 @@ networks:
     driver: bridge
 
 # Optional: For development with hot reload
-  discord-music-bot-dev:
+  music-to-easy-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: discord-music-helper-dev
+    container_name: music-to-easy-dev
     restart: unless-stopped
     environment:
       - NODE_ENV=development
