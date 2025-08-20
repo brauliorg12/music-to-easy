@@ -1,0 +1,55 @@
+# Node modules
+node_modules
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development files
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile.dev
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+.nyc_output
+
+# Build artifacts (we build inside the container)
+dist/
+
+# Testing
+.coverage
+junit.xml
+
+# Temporary files
+tmp/
+temp/

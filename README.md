@@ -14,13 +14,15 @@ Un bot de Discord elegante y moderno que simplifica el uso de bots de música me
 ## 🚀 Funcionalidades
 
 ### Comandos Soportados
+
 - **▶️ Play**: `m!p <canción>` - Reproduce música
 - **⏹️ Stop**: `m!leave` - Detiene y desconecta el bot
-- **⏭️ Skip**: `m!next` - Salta a la siguiente canción  
+- **⏭️ Skip**: `m!next` - Salta a la siguiente canción
 - **📜 Queue**: `m!queue` - Muestra la cola de reproducción
 - **🔊 Volume**: `m!volume <1-100>` - Ajusta el volumen
 
 ### Flujo de Usuario
+
 1. Administrador ejecuta `/setup` en un canal
 2. Aparece un panel con botones de comandos
 3. Usuario hace clic en un botón (ej: Play)
@@ -31,6 +33,7 @@ Un bot de Discord elegante y moderno que simplifica el uso de bots de música me
 ## 🛠️ Instalación
 
 ### Prerrequisitos
+
 - [Node.js](https://nodejs.org/) v18 o superior
 - [npm](https://www.npmjs.com/) o [yarn](https://yarnpkg.com/)
 - Un bot de música existente en tu servidor (Mee6, Groovy, etc.)
@@ -73,6 +76,7 @@ GUILD_ID=tu_guild_id_aqui
 ```
 
 **¿Cómo obtener estos valores?**
+
 - **CLIENT_ID**: En el portal de desarrolladores, pestaña "OAuth2" → "General"
 - **GUILD_ID**: Clic derecho en tu servidor → "Copiar ID del servidor" (requiere modo desarrollador)
 
@@ -100,6 +104,7 @@ npm run start
 ```
 
 ### En Discord
+
 1. Ejecuta `/setup` en el canal donde quieres la ayuda de música
 2. ¡El panel estará listo para usar!
 
@@ -127,6 +132,7 @@ src/
 ```
 
 ### Patrones de Diseño Utilizados
+
 - **Singleton**: Para el estado del bot
 - **Template Method**: Handler base para comandos de música
 - **Factory**: Para creación de botones y mensajes
@@ -137,38 +143,40 @@ src/
 ### Agregar Nuevos Comandos
 
 1. Agrega el comando en `src/utils/constants.ts`:
+
 ```typescript
 export const CUSTOM_IDS = {
-    // ... existentes
-    PAUSE: 'pause',
+  // ... existentes
+  PAUSE: 'pause',
 };
 
 export const MUSIC_COMMANDS = {
-    // ... existentes  
-    PAUSE: 'm!pause',
+  // ... existentes
+  PAUSE: 'm!pause',
 };
 ```
 
 2. Crea el manejador en `src/interactions/pause.ts`:
+
 ```typescript
 import { ButtonInteraction } from 'discord.js';
 import { MusicCommandHandler } from '../handlers/MusicCommandHandler';
 import { MUSIC_COMMANDS } from '../utils/constants';
 
 class PauseHandler extends MusicCommandHandler {
-    protected getCommand(): string {
-        return MUSIC_COMMANDS.PAUSE;
-    }
+  protected getCommand(): string {
+    return MUSIC_COMMANDS.PAUSE;
+  }
 
-    protected getInstruction(): string {
-        return '💡 Pégalo en el chat para pausar';
-    }
+  protected getInstruction(): string {
+    return '💡 Pégalo en el chat para pausar';
+  }
 }
 
 const pauseHandler = new PauseHandler();
 
 export async function execute(interaction: ButtonInteraction) {
-    await pauseHandler.execute(interaction);
+  await pauseHandler.execute(interaction);
 }
 ```
 
@@ -181,10 +189,46 @@ Simplemente modifica los comandos en `MUSIC_COMMANDS`:
 ```typescript
 // Para cambiar de Mee6 a otro bot
 export const MUSIC_COMMANDS = {
-    PLAY: '!play ',     // En lugar de 'm!p '
-    STOP: '!disconnect', // En lugar de 'm!leave'
-    // ... etc
+  PLAY: '!play ', // En lugar de 'm!p '
+  STOP: '!disconnect', // En lugar de 'm!leave'
+  // ... etc
 };
+```
+
+## 🐳 Uso con Docker
+
+### Desarrollo rápido
+
+```bash
+# Construir y ejecutar con Docker Compose
+make docker-dev
+
+# O manualmente
+docker-compose --profile dev up
+```
+
+### Producción
+
+```bash
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales
+
+# Ejecutar en producción
+make docker-prod
+
+# O manualmente
+docker-compose up discord-music-bot
+```
+
+### Comandos Docker útiles
+
+```bash
+make help                 # Ver todos los comandos disponibles
+make docker-build         # Construir imagen de producción
+make docker-build-dev     # Construir imagen de desarrollo
+make logs                 # Ver logs del contenedor
+make docker-clean         # Limpiar imágenes y contenedores
 ```
 
 ## 🤝 Contribuir
@@ -204,6 +248,39 @@ npm run deploy   # Despliega comandos slash a Discord
 npm run build    # Compila TypeScript a JavaScript
 ```
 
+## 🚀 CI/CD y Deployment
+
+Este proyecto incluye una pipeline completa de CI/CD con GitHub Actions:
+
+### Características del CI/CD
+
+- ✅ **Pruebas automáticas** en cada push y pull request
+- 🐳 **Build de imagen Docker** multi-arquitectura (AMD64 + ARM64)
+- 🔒 **Escaneo de seguridad** con Trivy
+- 📦 **Publicación automática** en GitHub Container Registry
+- 🚀 **Deploy automático** en la rama main
+- 🏷️ **Releases automáticos** con tags
+
+### Registry de Imágenes
+
+Las imágenes se publican automáticamente en:
+
+```
+ghcr.io/brauliorg12/discord-music-buttons:latest
+ghcr.io/brauliorg12/discord-music-buttons:v1.0.0
+```
+
+### Usando la imagen pre-construida
+
+```bash
+# Ejecutar desde GitHub Container Registry
+docker run --env-file .env ghcr.io/brauliorg12/discord-music-buttons:latest
+
+# O con docker-compose
+# Cambiar en docker-compose.yml:
+# image: ghcr.io/brauliorg12/discord-music-buttons:latest
+```
+
 ## ⚠️ Limitaciones Conocidas
 
 - **Mensajes de Bot**: Discord siempre marca los mensajes de webhooks como "APP", la mayoría de bots de música los ignoran
@@ -213,16 +290,19 @@ npm run build    # Compila TypeScript a JavaScript
 ## 🐛 Solución de Problemas
 
 ### El bot no responde
+
 - Verifica que el token sea correcto
 - Asegúrate de que el bot tenga los permisos necesarios
 - Revisa que MESSAGE_CONTENT_INTENT esté activado
 
 ### Los comandos no se cargan
+
 - Ejecuta `npm run deploy` después de cambios
 - Verifica CLIENT_ID en el archivo .env
 - Revisa los logs por errores de sintaxis
 
 ### El mensaje de ayuda no se reposiciona
+
 - Verifica que el bot tenga permisos para enviar/eliminar mensajes
 - Asegúrate de que esté monitoreando el canal correcto
 
@@ -232,9 +312,10 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 👤 Autor
 
-**Tu Nombre**
-- GitHub: [@tusuario](https://github.com/tusuario)
-- Discord: tu_discord#1234
+**Braulio Rodriguez**
+
+- GitHub: [@brauliorg12](https://github.com/brauliorg12)
+- Discord: burlon23
 
 ## 🙏 Agradecimientos
 

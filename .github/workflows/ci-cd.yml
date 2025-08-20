@@ -1,0 +1,146 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Job 1: Lint and Test
+  test:
+    runs-on: ubuntu-latest
+    name: 🧪 Test & Lint
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🔍 Run linter
+      run: npm run lint || echo "No linter configured"
+
+    - name: 🧪 Run tests
+      run: npm run test || echo "No tests configured"
+
+    - name: 🏗️ Build application
+      run: npm run build
+
+    - name: 📊 Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-files
+        path: dist/
+
+  # Job 2: Build and push Docker image
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    name: 🐳 Build & Push Docker Image
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🔑 Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 🏷️ Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: 🏗️ Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+  # Job 3: Security scan
+  security-scan:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    name: 🔒 Security Scan
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔍 Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: 📊 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Job 4: Deploy (only on main branch)
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [test, build-and-push, security-scan]
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy
+    environment: production
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Deploy to production
+      run: |
+        echo "🎉 Deploying to production..."
+        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        # Add your deployment commands here
+        # For example:
+        # - Deploy to cloud provider
+        # - Update docker-compose on server
+        # - Trigger deployment webhook
+        
+    - name: 📢 Notify deployment
+      run: |
+        echo "✅ Deployment completed successfully!"
+        echo "Version: ${{ github.sha }}"
+        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"

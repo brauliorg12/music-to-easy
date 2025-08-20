@@ -1,0 +1,29 @@
+FROM node:18-alpine
+
+# Install dumb-init
+RUN apk add --no-cache dumb-init
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S botuser -u 1001
+RUN chown -R botuser:nodejs /app
+
+USER botuser
+
+# Use dumb-init
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start in development mode
+CMD ["npm", "run", "dev"]
