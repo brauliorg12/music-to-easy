@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine3.18.4 AS builder
+FROM node:18-alpine3.19 AS builder
 
 # Set working directory
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine3.18.4 AS production
+FROM node:18-alpine3.19 AS production
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init

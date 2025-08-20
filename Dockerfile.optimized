@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine3.18.4 AS builder
+FROM node:18-alpine3.19 AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY tsconfig.json ./
 RUN npm run build
 
 # Production stage  
-FROM node:18-alpine3.18.4 AS production
+FROM node:18-alpine3.19 AS production
 
 # Install security updates and dumb-init
 RUN apk update && apk add --no-cache dumb-init

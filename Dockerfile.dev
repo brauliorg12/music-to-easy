@@ -1,4 +1,4 @@
-FROM node:18-alpine3.18.4
+FROM node:18-alpine3.19
 
 # Install dumb-init
 RUN apk add --no-cache dumb-init
