@@ -28,8 +28,8 @@ Un bot de Discord que hace que usar comandos de música sea **súper fácil** co
 | ▶️ **Play**   | `m!p <canción>`    | Reproduce música                |
 | ⏹️ **Stop**   | `m!leave`          | Detiene y desconecta el bot     |
 | ⏭️ **Skip**   | `m!next`           | Salta a la siguiente canción    |
-| 📜 **Queue**  | `m!queue`          | Muestra la cola de reproducción |
-| 🔊 **Volume** | `m!volume <1-100>` | Ajusta el volumen               |
+| 📜 **Lista de Reproducción**  | `m!queue`          | Muestra la cola de reproducción |
+| 🔊 **Volumen** | `m!volume <1-100>` | Ajusta el volumen               |
 
 ### 🎯 Flujo Super Fácil
 

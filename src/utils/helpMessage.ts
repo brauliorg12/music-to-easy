@@ -47,7 +47,7 @@ export function createHelpMessage() {
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId(CUSTOM_IDS.VOLUME)
-      .setLabel('🔊 Volúmen')
+      .setLabel('🔊 Volumen')
       .setStyle(ButtonStyle.Secondary)
   );
 
