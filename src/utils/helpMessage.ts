@@ -1,55 +1,56 @@
-import {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from 'discord.js';
-import { CUSTOM_IDS, MUSIC_COMMANDS } from './constants';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { CUSTOM_IDS } from './constants';
 
 export function createHelpMessage() {
   const embed = new EmbedBuilder()
-    .setColor(0x00ae86)
-    .setTitle('🎵 Comandos de Música - Ayuda Rápida')
-    .setDescription(
-      [
-        '**Comandos disponibles:**',
-        `• **Play:** \`${MUSIC_COMMANDS.PLAY}<canción>\` - Reproduce una canción`,
-        `• **Stop:** \`${MUSIC_COMMANDS.STOP}\` - Detiene la música`,
-        `• **Skip:** \`${MUSIC_COMMANDS.SKIP}\` - Salta la canción actual`,
-        `• **Queue:** \`${MUSIC_COMMANDS.QUEUE}\` - Muestra la cola`,
-        `• **Volume:** \`${MUSIC_COMMANDS.VOLUME}<1-100>\` - Ajusta el volumen`,
-        '',
-        '**💡 Tip:** Usa los botones de abajo para copiar los comandos fácilmente.',
-      ].join('\n')
+    .setColor(0x00AE86)
+    .setTitle('🎵 Music to Easy')
+    .setDescription('**Haz click en un botón para obtener el comando listo para usar:**')
+    .addFields(
+      { name: '▶️ Reproducir', value: 'Reproduce música desde YouTube, Spotify, etc.', inline: false },
+      { name: '⏹️ Detener', value: 'Detiene la música y desconecta el bot', inline: false },
+      { name: '⏭️ Saltar', value: 'Salta a la siguiente canción en la cola', inline: false },
+      { name: '📜 Cola', value: 'Muestra la cola de reproducción actual', inline: false },
+      { name: '🔊 Volumen', value: 'Ajusta el volumen de la música (1-100)', inline: false }
     )
-    .setFooter({ text: 'Este mensaje se mantiene siempre al final del chat' })
+    .setFooter({ text: '💡 Los comandos aparecerán listos para copiar y pegar' })
     .setTimestamp();
 
-  const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.PLAY)
-      .setLabel('▶️ Play')
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.STOP)
-      .setLabel('⏹️ Stop')
-      .setStyle(ButtonStyle.Danger),
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.SKIP)
-      .setLabel('⏭️ Siguiente')
-      .setStyle(ButtonStyle.Primary)
-  );
+  const row1 = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(CUSTOM_IDS.PLAY)
+        .setLabel('Reproducir')
+        .setStyle(ButtonStyle.Success)
+        .setEmoji('▶️'),
+      new ButtonBuilder()
+        .setCustomId(CUSTOM_IDS.STOP)
+        .setLabel('Detener')
+        .setStyle(ButtonStyle.Danger)
+        .setEmoji('⏹️'),
+      new ButtonBuilder()
+        .setCustomId(CUSTOM_IDS.SKIP)
+        .setLabel('Saltar')
+        .setStyle(ButtonStyle.Primary)
+        .setEmoji('⏭️')
+    );
 
-  const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.QUEUE)
-      .setLabel('📜 Lista de Reproducción')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.VOLUME)
-      .setLabel('🔊 Volumen')
-      .setStyle(ButtonStyle.Secondary)
-  );
+  const row2 = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(CUSTOM_IDS.QUEUE)
+        .setLabel('Cola')
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji('📜'),
+      new ButtonBuilder()
+        .setCustomId(CUSTOM_IDS.VOLUME)
+        .setLabel('Volumen')
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji('🔊')
+    );
 
-  return { embed, components: [row1, row2] };
+  return {
+    embed,
+    components: [row1, row2]
+  };
 }

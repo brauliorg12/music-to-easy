@@ -8,6 +8,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "start": "npm run build && node dist/index.js",
     "deploy": "ts-node src/deploy-commands.ts",
+    "clear-commands": "ts-node src/clear-commands.ts",
     "lint": "echo 'No linter configured yet'",
     "test": "echo 'No tests configured yet'"
   },

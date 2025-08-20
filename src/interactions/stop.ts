@@ -3,17 +3,17 @@ import { MusicCommandHandler } from '../handlers/MusicCommandHandler';
 import { MUSIC_COMMANDS } from '../utils/constants';
 
 class StopHandler extends MusicCommandHandler {
-    protected getCommand(): string {
-        return MUSIC_COMMANDS.STOP;
-    }
+  protected getCommand(): string {
+    return MUSIC_COMMANDS.STOP;
+  }
 
-    protected getInstruction(): string {
-        return '💡 Pégalo en el chat para detener';
-    }
+  protected getInstruction(): string {
+    return '💡 Pégalo en el chat para detener la música';
+  }
 }
 
 const stopHandler = new StopHandler();
 
 export async function execute(interaction: ButtonInteraction) {
-    await stopHandler.execute(interaction);
+  await stopHandler.execute(interaction);
 }

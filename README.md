@@ -100,6 +100,15 @@ GUILD_ID=tu_guild_id_aqui  # Opcional para testing
 
 ## 🎮 Uso
 
+### Comandos Slash Disponibles
+
+| Comando     | Descripción                                    | Permisos         |
+| ----------- | ---------------------------------------------- | ---------------- |
+| `/setup`    | Activa el sistema en el canal actual         | Administrador    |
+| `/disable`  | Desactiva el sistema completamente           | Administrador    |
+
+### Activar Sistema
+
 ```bash
 # En Discord
 /setup
@@ -107,13 +116,29 @@ GUILD_ID=tu_guild_id_aqui  # Opcional para testing
 # ¡Ya está listo! Usa los botones del panel
 ```
 
+### Desactivar Sistema
+
+```bash
+# En Discord
+/disable
+
+# El panel se eliminará y el bot dejará de monitorear
+```
+
+### ✅ Características de los Mensajes
+
+- **Botón Cerrar**: Todos los mensajes ephemeral incluyen botón ❌ para cerrar
+- **Auto-eliminación**: El panel se reposiciona automáticamente
+- **Feedback claro**: Confirmaciones con nombres de canales y servidores
+
 ## 🏗️ Para Desarrolladores
 
 ### Arquitectura Clean
 
 ```
 src/
-├── commands/          # Slash commands (/setup)
+├── commands/          # Slash commands (/setup, /disable)
+├── core/             # Core classes (BotClient, EventHandler)
 ├── handlers/          # Base handlers (Template Pattern)
 ├── interactions/      # Button handlers (Command Pattern)
 ├── utils/            # Utilities & helpers (Factory Pattern)
@@ -159,6 +184,8 @@ export async function execute(interaction: ButtonInteraction) {
 
 3. **UI (helpMessage.ts):** Agregar botón al panel
 
+4. **Deploy:** Agregar a `deploy-commands.ts` si es slash command
+
 ### 🎨 Personalización
 
 **Cambiar bot de música:**
@@ -203,30 +230,100 @@ make logs          # Ver logs en tiempo real
 ## ⚡ Scripts NPM
 
 ```bash
+# Desarrollo
 npm run dev        # Desarrollo con hot-reload
 npm run build      # Compilar TypeScript
 npm run start      # Producción (build + start)
-npm run deploy     # Desplegar comandos slash
+
+# Comandos Discord
+npm run deploy     # Desplegar comandos slash globalmente
+npm run clear-commands  # Limpiar comandos globales
+
+# Testing rápido (comandos de servidor)
+ts-node src/deploy-guild-commands.ts  # Deploy inmediato en servidor específico
+```
+
+### 🚀 Deploy de Comandos
+
+#### Opción 1: Deploy Global (Recomendado para producción)
+```bash
+npm run deploy
+# Comandos disponibles en todos los servidores (hasta 1 hora de espera)
+```
+
+#### Opción 2: Deploy de Servidor (Desarrollo)
+```bash
+# Asegurar GUILD_ID en .env
+ts-node src/deploy-guild-commands.ts
+# Comandos disponibles inmediatamente solo en tu servidor
+```
+
+#### Opción 3: Limpiar y Redesplegar
+```bash
+npm run clear-commands  # Esperar 2-3 minutos
+npm run deploy          # Redesplegar comandos
 ```
 
 ## ❓ Solución de Problemas
+
+### 🚫 "Comandos no aparecen"
+
+**Comandos Globales:**
+- ✅ Ejecutar `npm run deploy` después de cambios
+- ✅ Esperar hasta 1 hora para propagación
+- ✅ Reiniciar Discord completamente
+
+**Comandos de Servidor (Testing):**
+- ✅ Verificar `GUILD_ID` en `.env`
+- ✅ Ejecutar `ts-node src/deploy-guild-commands.ts`
+- ✅ Aparecen inmediatamente
+
+**Limpieza forzada:**
+```bash
+npm run clear-commands
+# Esperar 2-3 minutos
+npm run deploy
+```
 
 ### 🚫 "Bot no responde"
 
 - ✅ Verificar `DISCORD_TOKEN` en `.env`
 - ✅ Bot tiene permisos necesarios
 - ✅ `MESSAGE_CONTENT_INTENT` activado
-
-### 🚫 "Comandos no cargan"
-
-- ✅ Ejecutar `npm run deploy` después de cambios
-- ✅ Verificar `CLIENT_ID` correcto
-- ✅ Revisar logs por errores
+- ✅ Ejecutado `/setup` en canal correcto
 
 ### 🚫 "Panel no se reposiciona"
 
 - ✅ Bot tiene permisos de `Manage Messages`
-- ✅ Ejecutado `/setup` en canal correcto
+- ✅ Sistema activado con `/setup`
+- ✅ Verificar logs para errores
+
+### 🚫 "Comando /disable no funciona"
+
+- ✅ Sistema debe estar activo primero (`/setup`)
+- ✅ Usar en canal con permisos de administrador
+- ✅ Verificar que los comandos se desplegaron correctamente
+
+## 📊 Logs y Monitoreo
+
+### Logs del Sistema
+
+```
+[Music to Easy] Bot iniciado como BotName#1234!
+[Info] Monitoreando 2 servidores:
+  • Mi Servidor (ID: 123...) - 50 miembros
+  • Servidor Test (ID: 456...) - 12 miembros
+
+[Setup] Sistema activado en canal #música (789...) por usuario#1234
+[Monitor] Mensaje de ayuda reenvíado tras mensaje de MEE6#4876 en #música
+[Disable] Sistema desactivado del canal #música (789...) por usuario#1234
+```
+
+### Estados del Bot
+
+- **Inactivo**: Sin canal configurado, no responde automáticamente
+- **Activo**: Monitoreando canal específico, reposicionando panel
+- **Transición**: Durante setup/disable, manejando cambios de estado
 
 ## 🤝 Contribuir
 
@@ -236,6 +333,18 @@ git checkout -b feature/amazing-feature
 git commit -m "Add: amazing feature"
 git push origin feature/amazing-feature
 # → Abrir Pull Request
+```
+
+### Estructura de Commits
+
+```
+Add: nueva funcionalidad
+Fix: corrección de bug
+Update: actualización de feature existente
+Docs: actualización de documentación
+Style: cambios de formato/estilo
+Refactor: refactorización de código
+Test: agregar/actualizar tests
 ```
 
 ## 📊 Estado del Proyecto
@@ -249,6 +358,22 @@ git push origin feature/amazing-feature
 - **Discord Webhook Limitation**: Los mensajes de bots siempre tienen etiqueta "APP"
 - **Solución**: Comandos listos para copy-paste manual (más rápido que escribir)
 - **Compatibilidad**: Funciona con cualquier bot de música con prefijos
+- **Un Canal por Servidor**: Solo un canal activo por servidor simultáneamente
+
+## 📝 Changelog Reciente
+
+### v1.1.0
+- ✅ Comando `/disable` para desactivar sistema
+- ✅ Botones "Cerrar" en todos los mensajes ephemeral
+- ✅ Logs mejorados con nombres de canales y servidores
+- ✅ Arquitectura modular refactorizada
+- ✅ Scripts de deploy para testing rápido
+
+### v1.0.0
+- 🎉 Lanzamiento inicial
+- ✅ Panel de botones persistente
+- ✅ Comando `/setup` para activar sistema
+- ✅ Auto-reposicionamiento de mensajes
 
 ## 📄 Licencia
 
