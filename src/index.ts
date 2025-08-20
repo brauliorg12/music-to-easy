@@ -3,8 +3,10 @@ dotenv.config();
 
 import fs from 'fs';
 import path from 'path';
-import { Client, Collection, GatewayIntentBits, Interaction, CommandInteraction, ButtonInteraction, ModalSubmitInteraction } from 'discord.js';
+import { Client, Collection, GatewayIntentBits, Message, Interaction, CommandInteraction, ButtonInteraction, ModalSubmitInteraction, TextChannel } from 'discord.js';
 import { CUSTOM_IDS } from './utils/constants';
+import { createHelpMessage } from './utils/helpMessage';
+import BotState from './utils/botState';
 
 // Extend Client class to hold commands and interaction handlers
 class BotClient extends Client {
@@ -44,27 +46,16 @@ for (const file of interactionFiles) {
     const filePath = path.join(interactionsPath, file);
     const interactionHandler = require(filePath);
 
-    // Determine if it's a button or modal handler based on its filename or content
-    // For simplicity, we'll assume naming convention: 'buttonName.ts' for buttons, 'modalName.ts' for modals
-    // A more robust solution might involve an interface with a 'customId' property
-    if (file.includes('Button.ts')) {
-        const customIdKey = Object.keys(CUSTOM_IDS).find(key => CUSTOM_IDS[key as keyof typeof CUSTOM_IDS] === file.replace('.ts', '').replace('Button', '_button').toLowerCase());
-        if (customIdKey) {
-            const customId = CUSTOM_IDS[customIdKey as keyof typeof CUSTOM_IDS];
-            client.buttonInteractions.set(customId, interactionHandler);
-            console.log(`[Carga] Manejador de botón '${customId}' cargado.`);
-        } else {
-            console.warn(`[Advertencia] No se encontró un CUSTOM_ID para el manejador de botón ${file}.`);
-        }
-    } else if (file.includes('ModalSubmit.ts')) {
-        const customIdKey = Object.keys(CUSTOM_IDS).find(key => CUSTOM_IDS[key as keyof typeof CUSTOM_IDS] === file.replace('.ts', '').replace('ModalSubmit', '_modal').toLowerCase());
-        if (customIdKey) {
-            const customId = CUSTOM_IDS[customIdKey as keyof typeof CUSTOM_IDS];
-            client.modalInteractions.set(customId, interactionHandler);
-            console.log(`[Carga] Manejador de modal '${customId}' cargado.`);
-        } else {
-            console.warn(`[Advertencia] No se encontró un CUSTOM_ID para el manejador de modal ${file}.`);
-        }
+    // Para archivos simples como play.ts, stop.ts, etc.
+    const expectedCustomId = file.replace('.ts', '');
+    const customIdKey = Object.keys(CUSTOM_IDS).find(key => CUSTOM_IDS[key as keyof typeof CUSTOM_IDS] === expectedCustomId);
+    
+    if (customIdKey) {
+        const customId = CUSTOM_IDS[customIdKey as keyof typeof CUSTOM_IDS];
+        client.buttonInteractions.set(customId, interactionHandler);
+        console.log(`[Carga] Manejador '${customId}' cargado.`);
+    } else {
+        console.warn(`[Advertencia] No se encontró un CUSTOM_ID para el archivo ${file} (esperaba: ${expectedCustomId})`);
     }
 }
 
@@ -77,6 +68,52 @@ if (!TOKEN) {
 
 client.on('ready', () => {
     console.log(`[Inicio] Bot iniciado como ${client.user?.tag}!`);
+});
+
+// Monitor de mensajes para mantener la ayuda al final
+client.on('messageCreate', async (message: Message) => {
+    const botState = BotState.getInstance();
+    
+    // Ignorar mensajes propios
+    if (message.author.id === client.user?.id) return;
+    
+    // Solo actuar en el canal configurado
+    if (message.channelId !== botState.getChannel()) return;
+    
+    // Solo reaccionar a mensajes de bots
+    if (!message.author.bot) return;
+    
+    try {
+        const channel = message.channel as TextChannel;
+        
+        // Eliminar el mensaje de ayuda anterior si existe
+        const lastMessageId = botState.getLastMessageId();
+        if (lastMessageId) {
+            try {
+                const oldMessage = await channel.messages.fetch(lastMessageId);
+                await oldMessage.delete();
+                botState.clearLastMessageId();
+            } catch (e) {
+                // El mensaje ya no existe, continuar
+                botState.clearLastMessageId();
+            }
+        }
+        
+        // Crear nuevo mensaje de ayuda
+        const { embed, components } = createHelpMessage();
+        const newHelpMessage = await channel.send({ 
+            embeds: [embed], 
+            components: components 
+        });
+        
+        // Actualizar referencia
+        botState.setLastMessageId(newHelpMessage.id);
+        
+        console.log(`[Monitor] Mensaje de ayuda reenvíado tras mensaje de ${message.author.tag}`);
+        
+    } catch (error) {
+        console.error('[Monitor] Error al reenviar mensaje de ayuda:', error);
+    }
 });
 
 // Interaction Handler

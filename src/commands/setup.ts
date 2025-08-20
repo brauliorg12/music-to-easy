@@ -1,34 +1,32 @@
-import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, CommandInteraction, PermissionFlagsBits } from 'discord.js';
+import { SlashCommandBuilder, CommandInteraction, PermissionFlagsBits } from 'discord.js';
+import { createHelpMessage } from '../utils/helpMessage';
+import BotState from '../utils/botState';
 
 export const data = new SlashCommandBuilder()
     .setName('setup')
-    .setDescription('Crea el panel de control de música en este canal.')
+    .setDescription('Activa el sistema de ayuda de música en este canal.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
 export async function execute(interaction: CommandInteraction) {
-    const embed = new EmbedBuilder()
-        .setColor(0x0099FF)
-        .setTitle('Panel de Control de Música')
-        .setDescription('Usa los botones de abajo para controlar la música.')
-        .setTimestamp();
-
-    const playButton = new ButtonBuilder()
-        .setCustomId('play_button')
-        .setLabel('▶️ Play')
-        .setStyle(ButtonStyle.Success);
-
-    const stopButton = new ButtonBuilder()
-        .setCustomId('stop_button')
-        .setLabel('⏹️ Stop')
-        .setStyle(ButtonStyle.Danger);
-
-    const nextButton = new ButtonBuilder()
-        .setCustomId('next_button')
-        .setLabel('⏭️ Next')
-        .setStyle(ButtonStyle.Primary);
-
-    const row = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(playButton, stopButton, nextButton);
-
-    await interaction.reply({ embeds: [embed], components: [row] });
+    const botState = BotState.getInstance();
+    
+    // Guardar el ID del canal en el estado del bot
+    botState.setChannel(interaction.channelId);
+    
+    // Enviar mensaje inicial de ayuda
+    const { embed, components } = createHelpMessage();
+    
+    // Primero responder a la interacción
+    await interaction.reply({ 
+        embeds: [embed], 
+        components: components
+    });
+    
+    // Luego obtener la respuesta para conseguir el ID del mensaje
+    const message = await interaction.fetchReply();
+    
+    // Guardar ID del último mensaje de ayuda
+    botState.setLastMessageId(message.id);
+    
+    console.log(`[Setup] Sistema activado en canal ${interaction.channelId}`);
 }

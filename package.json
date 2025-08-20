@@ -1,23 +1,52 @@
 {
-  "name": "discord-music-buttons",
+  "name": "discord-music-helper-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Discord bot that provides an intuitive interface for music bot commands with buttons and easy copy functionality",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts",
-    "start": "tsc && node dist/index.js",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "start": "npm run build && node dist/index.js",
     "deploy": "ts-node src/deploy-commands.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "echo 'No linter configured yet'",
+    "test": "echo 'No tests configured yet'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "discord",
+    "bot",
+    "music",
+    "discord.js",
+    "typescript",
+    "slash-commands",
+    "buttons",
+    "ui",
+    "helper"
+  ],
+  "author": {
+    "name": "Braulio Rodriguez",
+    "email": "cubanovainfo@gmail.com",
+    "url": "https://github.com/brauliorg12"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brauliorg12/discord-music-buttons.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brauliorg12/discord-music-buttons/issues"
+  },
+  "homepage": "https://github.com/brauliorg12/discord-music-buttons#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "dependencies": {
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.1"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"
   }
