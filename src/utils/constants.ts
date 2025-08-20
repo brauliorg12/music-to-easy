@@ -16,7 +16,7 @@ export const MUSIC_COMMANDS = {
 } as const;
 
 // Bots de música comunes para detección específica
-export const COMMON_MUSIC_BOTS = [
+export const COMMON_MUSIC_BOTS: string[] = [
   '159985870458322944', // MEE6
   '235088799074484224', // Rythm
   '252128902418268161', // Groovy
@@ -25,20 +25,28 @@ export const COMMON_MUSIC_BOTS = [
   '155149108183695360', // Dank Memer
   '234395307759108106', // Arcane
   '213466096718708737', // Craig
-  '411916947773587456', // Jockie Music#8158
+  '411916947773587456', // Jockie Music
+  '298822483325083649', // Probot
+  '270198738570379264', // Pancake
+  '473370418683797504', // Green-bot
+  '569621644344246284', // Chip
+  '307926710034357248', // Carl-bot (música)
+  '282859044593598464', // GiveawayBot
   // Agregar más IDs según necesites
-] as const;
+];
 
 // Prefijos comunes de bots de música
-export const MUSIC_BOT_PREFIXES = [
+export const MUSIC_BOT_PREFIXES: string[] = [
   'm!', '!', '?', '-', '.', '+', 'p!', 'd!', 'r!', '>', 
-  'fb!', 'a!', 'carl!', '=', '$', '&', '%', '~', '^'
-] as const;
+  'fb!', 'a!', 'carl!', '=', '$', '&', '%', '~', '^',
+  '/', 'j!', 'pan!', 'c!', 'g!', 'chip!', 'gb!'
+];
 
 // Comandos comunes de música
-export const COMMON_MUSIC_COMMANDS = [
+export const COMMON_MUSIC_COMMANDS: string[] = [
   'play', 'p', 'skip', 'next', 'stop', 'leave', 'disconnect',
   'queue', 'q', 'volume', 'vol', 'pause', 'resume', 'seek',
   'shuffle', 'loop', 'repeat', 'lyrics', 'nowplaying', 'np',
-  'clear', 'remove', 'jump', 'move', 'search', 'join'
-] as const;
+  'clear', 'remove', 'jump', 'move', 'search', 'join',
+  'bass', 'speed', 'pitch', 'nightcore', 'vaporwave'
+];

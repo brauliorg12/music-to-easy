@@ -9,6 +9,11 @@ import {
 import { BotClient } from './BotClient';
 import { createHelpMessage } from '../utils/helpMessage';
 import BotState from '../utils/botState';
+import {
+  COMMON_MUSIC_BOTS,
+  MUSIC_BOT_PREFIXES,
+  COMMON_MUSIC_COMMANDS,
+} from '../utils/constants';
 
 export class EventHandler {
   constructor(private client: BotClient) {}
@@ -59,13 +64,16 @@ export class EventHandler {
     // Solo procesar mensajes del canal configurado
     if (message.channelId !== botState.getChannel()) return;
 
-    // Procesar mensajes de bots O comandos de usuarios (que inician con prefijo)
+    // Procesar mensajes que requieren reposicionamiento
     const shouldReposition = this.shouldRepositionPanel(message);
-    
+
     if (!shouldReposition) return;
 
     try {
       const channel = message.channel as TextChannel;
+
+      // Pequeño delay para evitar rate limits
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Intentar eliminar el mensaje anterior de ayuda
       await this.cleanupPreviousMessage(channel, botState);
@@ -87,48 +95,77 @@ export class EventHandler {
   }
 
   private shouldRepositionPanel(message: Message): boolean {
-    // Si es un bot, siempre reposicionar
+    // TODOS los bots siempre activan reposicionamiento
     if (message.author.bot) {
       return true;
     }
 
-    // Si es un usuario pero envió un comando de música, reposicionar
-    const musicPrefixes = ['m!', '!', '?', '-', '.', '+', 'p!', 'd!', 'r!', '>'];
+    // Si es un usuario pero envió un comando de música, también reposicionar
     const content = message.content.toLowerCase().trim();
-    
+
     // Verificar si el mensaje comienza con algún prefijo común de bots de música
-    const hasPrefix = musicPrefixes.some(prefix => content.startsWith(prefix));
-    
+    const hasPrefix = MUSIC_BOT_PREFIXES.some((prefix) =>
+      content.startsWith(prefix)
+    );
+
     if (hasPrefix) {
       // Verificar si es un comando de música común
-      const musicCommands = ['play', 'p', 'skip', 'next', 'stop', 'leave', 'queue', 'q', 'volume', 'vol', 'pause', 'resume'];
       const commandPart = content.split(' ')[0].substring(1); // Quitar prefijo
-      
-      return musicCommands.includes(commandPart);
+      return COMMON_MUSIC_COMMANDS.includes(commandPart);
     }
 
     return false;
   }
 
   private logRepositioning(message: Message, channel: TextChannel): void {
-    const authorType = message.author.bot ? 'bot' : 'usuario';
     const authorName = message.author.tag;
-    const messagePreview = message.content.length > 50 
-      ? message.content.substring(0, 50) + '...' 
-      : message.content;
 
     if (message.author.bot) {
+      // Detectar tipo de mensaje del bot
+      let messageType = 'mensaje';
+      let contentPreview = '';
+
+      if (message.embeds.length > 0) {
+        messageType = 'embed';
+        const embed = message.embeds[0];
+        if (embed.title) {
+          contentPreview = `"${embed.title}"`;
+        } else if (embed.description) {
+          contentPreview = `"${embed.description.substring(0, 50)}${
+            embed.description.length > 50 ? '...' : ''
+          }"`;
+        }
+      } else if (message.content) {
+        contentPreview = `"${message.content.substring(0, 50)}${
+          message.content.length > 50 ? '...' : ''
+        }"`;
+      }
+
+      // Identificar si es un bot de música conocido
+      const knownMusicBot = COMMON_MUSIC_BOTS.includes(message.author.id);
+      const botType = knownMusicBot ? 'bot de música' : 'bot';
+
       console.log(
-        `[Monitor] Panel reposicionado tras mensaje de bot ${authorName} en #${channel.name}`
+        `[Monitor] Panel reposicionado tras ${messageType} de ${botType} ${authorName} en #${
+          channel.name
+        }${contentPreview ? ': ' + contentPreview : ''}`
       );
     } else {
+      const messagePreview =
+        message.content.length > 50
+          ? message.content.substring(0, 50) + '...'
+          : message.content;
+
       console.log(
-        `[Monitor] Panel reposicionado tras comando de música de ${authorName} en #${channel.name}: "${messagePreview}"`
+        `[Monitor] Panel reposicionado tras comando de música de usuario ${authorName} en #${channel.name}: "${messagePreview}"`
       );
     }
   }
 
-  private async cleanupPreviousMessage(channel: TextChannel, botState: any): Promise<void> {
+  private async cleanupPreviousMessage(
+    channel: TextChannel,
+    botState: any
+  ): Promise<void> {
     const lastMessageId = botState.getLastMessageId();
     if (!lastMessageId) return;
 
@@ -142,8 +179,12 @@ export class EventHandler {
         console.log('[Monitor] El mensaje anterior ya fue eliminado');
       } else if (error.code === 50013) {
         console.log('[Monitor] Sin permisos para eliminar mensaje anterior');
+      } else if (error.code === 50035) {
+        console.log('[Monitor] Mensaje anterior no válido');
       } else {
-        console.log(`[Monitor] No se pudo eliminar mensaje anterior: ${error.message}`);
+        console.log(
+          `[Monitor] No se pudo eliminar mensaje anterior: ${error.message}`
+        );
       }
     } finally {
       // Limpiar el ID siempre, independientemente del resultado
