@@ -1,0 +1,51 @@
+# Build stage
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files first (better layer caching)
+COPY package*.json ./
+
+# Install dependencies (including dev for building)
+RUN npm ci --frozen-lockfile
+
+# Copy source files
+COPY src/ ./src/
+COPY tsconfig.json ./
+
+# Build the application
+RUN npm run build
+
+# Production stage  
+FROM node:18-alpine AS production
+
+# Install security updates and dumb-init
+RUN apk update && apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S botuser -u 1001
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --omit=dev --frozen-lockfile && \
+    npm cache clean --force
+
+# Copy built application
+COPY --from=builder /app/dist ./dist
+
+# Set ownership and switch to non-root user
+RUN chown -R botuser:nodejs /app
+USER botuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "process.exit(0)" || exit 1
+
+# Use dumb-init and start the app
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
