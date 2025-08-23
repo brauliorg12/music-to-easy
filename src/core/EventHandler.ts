@@ -19,32 +19,26 @@ export class EventHandler {
   constructor(private client: BotClient) {}
 
   public setupEventHandlers(): void {
-    this.client.once('ready', () => {
-      console.log(
-        `[Music to Easy] Bot iniciado como ${this.client.user?.tag}!`
-      );
-      this.logServerInfo();
-    });
+    this.client.once('ready', this.onReady.bind(this));
+    this.client.on('messageCreate', this.onMessageCreate.bind(this));
+    this.client.on('interactionCreate', this.onInteractionCreate.bind(this));
+  }
 
-    this.client.on('messageCreate', this.handleMessageCreate.bind(this));
-    this.client.on(
-      'interactionCreate',
-      this.handleInteractionCreate.bind(this)
-    );
+  private onReady(): void {
+    const userTag = this.client.user?.tag;
+    console.log(`[Music to Easy] Bot iniciado como ${userTag}!`);
+    this.logServerInfo();
   }
 
   private logServerInfo(): void {
     const guilds = this.client.guilds.cache;
     const guildCount = guilds.size;
-
     if (guildCount === 0) {
       console.log('[Info] No está conectado a ningún servidor');
       return;
     }
-
     const serverWord = guildCount === 1 ? 'servidor' : 'servidores';
     console.log(`[Info] Monitoreando ${guildCount} ${serverWord}:`);
-
     guilds.forEach((guild) => {
       console.log(
         `  • ${guild.name} (ID: ${guild.id}) - ${guild.memberCount} miembros`
@@ -52,135 +46,94 @@ export class EventHandler {
     });
   }
 
-  private async handleMessageCreate(message: Message): Promise<void> {
+  private async onMessageCreate(message: Message): Promise<void> {
     const botState = BotState.getInstance();
-
-    // Solo procesar si el sistema está activo
     if (!botState.getChannel()) return;
-
-    // No procesar nuestros propios mensajes
     if (message.author.id === this.client.user?.id) return;
-
-    // Solo procesar mensajes del canal configurado
     if (message.channelId !== botState.getChannel()) return;
-
-    // Procesar mensajes que requieren reposicionamiento
-    const shouldReposition = this.shouldRepositionPanel(message);
-
-    if (!shouldReposition) return;
+    if (!this.shouldRepositionPanel(message)) return;
 
     try {
       const channel = message.channel as TextChannel;
-
-      // Pequeño delay para evitar rate limits
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Limpiar mensajes anteriores de nuestra app
-      await this.cleanupPreviousMessages(channel, botState);
-
-      // Crear nuevo mensaje de ayuda
+      await this.delay(500);
+      await this.cleanupHelpMessages(channel, botState);
       const { embed, components } = createHelpMessage();
       const newHelpMessage = await channel.send({
         embeds: [embed],
-        components: components,
+        components,
       });
-
-      // Guardar el ID del nuevo mensaje
       botState.setLastMessageId(newHelpMessage.id);
-
-      this.logRepositioning(message, channel);
+      this.logPanelReposition(message, channel);
     } catch (error) {
       console.error('[Monitor] Error al reposicionar panel de ayuda:', error);
     }
   }
 
-  private async cleanupPreviousMessages(channel: TextChannel, botState: any): Promise<void> {
-    try {
-      // Obtener los últimos mensajes del canal
-      const messages = await channel.messages.fetch({ limit: 20 });
-      
-      // Filtrar mensajes de nuestra app
-      const ourMessages = messages.filter(msg => 
-        msg.author.id === this.client.user?.id && 
-        msg.embeds.length > 0 && 
-        msg.embeds[0].title?.includes('Comandos de Música')
-      );
+  private shouldRepositionPanel(message: Message): boolean {
+    if (message.author.bot) return true;
+    const content = message.content.toLowerCase().trim();
+    const hasPrefix = MUSIC_BOT_PREFIXES.some((prefix) =>
+      content.startsWith(prefix)
+    );
+    if (hasPrefix) {
+      const commandPart = content.split(' ')[0].substring(1);
+      return COMMON_MUSIC_COMMANDS.includes(commandPart);
+    }
+    return false;
+  }
 
-      // Eliminar todos nuestros mensajes de ayuda anteriores
+  private async cleanupHelpMessages(
+    channel: TextChannel,
+    botState: any
+  ): Promise<void> {
+    try {
+      const messages = await channel.messages.fetch({ limit: 20 });
+      const ourMessages = messages.filter(
+        (msg) =>
+          msg.author.id === this.client.user?.id &&
+          msg.embeds.length > 0 &&
+          msg.embeds[0].title?.includes('Comandos de Música')
+      );
       for (const ourMessage of ourMessages.values()) {
         try {
           await ourMessage.delete();
           console.log('[Monitor] Mensaje anterior de ayuda eliminado');
         } catch (error: any) {
-          // Ignorar errores de mensajes ya eliminados
           if (error.code !== 10008) {
-            console.log(`[Monitor] No se pudo eliminar mensaje: ${error.message}`);
+            console.log(
+              `[Monitor] No se pudo eliminar mensaje: ${error.message}`
+            );
           }
         }
       }
-
-      // También limpiar el mensaje específico del estado si existe
-      const lastMessageId = botState.getLastMessageId();
-      if (lastMessageId) {
-        try {
-          const oldMessage = await channel.messages.fetch(lastMessageId);
-          await oldMessage.delete();
-          console.log('[Monitor] Mensaje del estado eliminado correctamente');
-        } catch (error: any) {
-          // Ya manejado en el bucle anterior
-        }
-      }
-      
+      await this.deleteLastMessageById(channel, botState.getLastMessageId());
     } catch (error: any) {
       console.log(`[Monitor] Error en limpieza masiva: ${error.message}`);
-      
-      // Fallback: limpiar solo el mensaje del estado
-      const lastMessageId = botState.getLastMessageId();
-      if (lastMessageId) {
-        try {
-          const oldMessage = await channel.messages.fetch(lastMessageId);
-          await oldMessage.delete();
-        } catch (error: any) {
-          // Ignorar errores
-        }
-      }
+      await this.deleteLastMessageById(channel, botState.getLastMessageId());
     } finally {
-      // Limpiar el ID siempre
       botState.clearLastMessageId();
     }
   }
 
-  private shouldRepositionPanel(message: Message): boolean {
-    // TODOS los bots siempre activan reposicionamiento
-    if (message.author.bot) {
-      return true;
+  private async deleteLastMessageById(
+    channel: TextChannel,
+    messageId?: string
+  ) {
+    if (!messageId) return;
+    try {
+      const oldMessage = await channel.messages.fetch(messageId);
+      await oldMessage.delete();
+      console.log('[Monitor] Mensaje del estado eliminado correctamente');
+    } catch {
+      // Ignorar errores
     }
-
-    // Si es un usuario pero envió un comando de música, también reposicionar
-    const content = message.content.toLowerCase().trim();
-
-    // Verificar si el mensaje comienza con algún prefijo común de bots de música
-    const hasPrefix = MUSIC_BOT_PREFIXES.some((prefix) =>
-      content.startsWith(prefix)
-    );
-
-    if (hasPrefix) {
-      // Verificar si es un comando de música común
-      const commandPart = content.split(' ')[0].substring(1); // Quitar prefijo
-      return COMMON_MUSIC_COMMANDS.includes(commandPart);
-    }
-
-    return false;
   }
 
-  private logRepositioning(message: Message, channel: TextChannel): void {
+  private logPanelReposition(message: Message, channel: TextChannel): void {
     const authorName = message.author.tag;
-
     if (message.author.bot) {
-      // Detectar tipo de mensaje del bot
       let messageType = 'mensaje';
       let contentPreview = '';
-
       if (message.embeds.length > 0) {
         messageType = 'embed';
         const embed = message.embeds[0];
@@ -196,11 +149,8 @@ export class EventHandler {
           message.content.length > 50 ? '...' : ''
         }"`;
       }
-
-      // Identificar si es un bot de música conocido
       const knownMusicBot = COMMON_MUSIC_BOTS.includes(message.author.id);
       const botType = knownMusicBot ? 'bot de música' : 'bot';
-
       console.log(
         `[Monitor] Panel reposicionado tras ${messageType} de ${botType} ${authorName} en #${
           channel.name
@@ -211,16 +161,13 @@ export class EventHandler {
         message.content.length > 50
           ? message.content.substring(0, 50) + '...'
           : message.content;
-
       console.log(
         `[Monitor] Panel reposicionado tras comando de música de usuario ${authorName} en #${channel.name}: "${messagePreview}"`
       );
     }
   }
 
-  private async handleInteractionCreate(
-    interaction: Interaction
-  ): Promise<void> {
+  private async onInteractionCreate(interaction: Interaction): Promise<void> {
     if (interaction.isCommand()) {
       await this.handleCommand(interaction as CommandInteraction);
     } else if (interaction.isButton()) {
@@ -238,7 +185,6 @@ export class EventHandler {
       );
       return;
     }
-
     try {
       await command.execute(interaction);
       console.log(
@@ -266,7 +212,6 @@ export class EventHandler {
       );
       return;
     }
-
     try {
       await buttonHandler.execute(interaction);
       console.log(
@@ -296,7 +241,6 @@ export class EventHandler {
       );
       return;
     }
-
     try {
       await modalHandler.execute(interaction);
       console.log(
@@ -323,5 +267,9 @@ export class EventHandler {
     } else {
       await interaction.reply({ content, ephemeral: true });
     }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

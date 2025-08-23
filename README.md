@@ -16,10 +16,10 @@ Music to Easy crea un **panel de control** con botones en el canal que elijas. A
 
 ## 🟢 Comandos Slash Disponibles
 
-| Comando    | Descripción                                                        | Permisos      |
-| ---------- | ------------------------------------------------------------------ | ------------- |
-| `/music`   | Activa el panel de control de música en el canal actual            | Administrador |
-| `/disable` | Desactiva el sistema y elimina el panel del canal configurado      | Administrador |
+| Comando    | Descripción                                                   | Permisos      |
+| ---------- | ------------------------------------------------------------- | ------------- |
+| `/music`   | Activa el panel de control de música en el canal actual       | Administrador |
+| `/disable` | Desactiva el sistema y elimina el panel del canal configurado | Administrador |
 
 > **Nota:** Estos son los únicos comandos propios de este bot.
 
@@ -27,7 +27,7 @@ Music to Easy crea un **panel de control** con botones en el canal que elijas. A
 
 ## 🎛️ Panel de Botones
 
-El panel incluye botones para las acciones más comunes (Play, Stop, Skip, Queue, Volume, Ayuda). Al pulsar un botón, el bot te muestra el comando correspondiente para que lo copies y pegues en el chat del bot de música que uses.
+El panel incluye botones para las acciones más comunes (Play, Stop, Skip, Queue, Ayuda). Al pulsar un botón, el bot te muestra el comando correspondiente para que lo copies y pegues en el chat del bot de música que uses.
 
 ---
 

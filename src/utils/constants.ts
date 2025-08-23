@@ -3,9 +3,8 @@ export const CUSTOM_IDS = {
   STOP: 'stop',
   SKIP: 'skip',
   QUEUE: 'queue',
-  VOLUME: 'volume',
   HELP: 'help',
-  CLOSE: 'close' // Solo para mensajes ephemeral
+  CLOSE: 'close', // Solo para mensajes ephemeral
 } as const;
 
 export const MUSIC_COMMANDS = {
@@ -13,7 +12,6 @@ export const MUSIC_COMMANDS = {
   STOP: 'm!leave',
   SKIP: 'm!next',
   QUEUE: 'm!queue',
-  VOLUME: 'm!volume '
 } as const;
 
 // Bots de música comunes para detección específica
@@ -38,16 +36,63 @@ export const COMMON_MUSIC_BOTS: string[] = [
 
 // Prefijos comunes de bots de música
 export const MUSIC_BOT_PREFIXES: string[] = [
-  'm!', '!', '?', '-', '.', '+', 'p!', 'd!', 'r!', '>', 
-  'fb!', 'a!', 'carl!', '=', '$', '&', '%', '~', '^',
-  '/', 'j!', 'pan!', 'c!', 'g!', 'chip!', 'gb!'
+  'm!',
+  '!',
+  '?',
+  '-',
+  '.',
+  '+',
+  'p!',
+  'd!',
+  'r!',
+  '>',
+  'fb!',
+  'a!',
+  'carl!',
+  '=',
+  '$',
+  '&',
+  '%',
+  '~',
+  '^',
+  '/',
+  'j!',
+  'pan!',
+  'c!',
+  'g!',
+  'chip!',
+  'gb!',
 ];
 
 // Comandos comunes de música
 export const COMMON_MUSIC_COMMANDS: string[] = [
-  'play', 'p', 'skip', 'next', 'stop', 'leave', 'disconnect',
-  'queue', 'q', 'volume', 'vol', 'pause', 'resume', 'seek',
-  'shuffle', 'loop', 'repeat', 'lyrics', 'nowplaying', 'np',
-  'clear', 'remove', 'jump', 'move', 'search', 'join',
-  'bass', 'speed', 'pitch', 'nightcore', 'vaporwave'
+  'play',
+  'p',
+  'skip',
+  'next',
+  'stop',
+  'leave',
+  'disconnect',
+  'queue',
+  'q',
+  'pause',
+  'resume',
+  'seek',
+  'shuffle',
+  'loop',
+  'repeat',
+  'lyrics',
+  'nowplaying',
+  'np',
+  'clear',
+  'remove',
+  'jump',
+  'move',
+  'search',
+  'join',
+  'bass',
+  'speed',
+  'pitch',
+  'nightcore',
+  'vaporwave',
 ];

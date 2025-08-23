@@ -8,7 +8,7 @@ class SkipHandler extends MusicCommandHandler {
   }
 
   protected getInstruction(): string {
-    return '💡 Pégalo en el chat para saltar a la siguiente canción';
+    return '💡 Copia y Pega en el chat para saltar a la siguiente canción';
   }
 }
 

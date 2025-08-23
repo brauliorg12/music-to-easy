@@ -8,9 +8,12 @@ export class InteractionLoader {
 
   public loadInteractions(): void {
     const interactionsPath = path.join(__dirname, '../interactions');
-    
+
     if (!fs.existsSync(interactionsPath)) {
-      console.warn('[InteractionLoader] Directorio de interacciones no existe:', interactionsPath);
+      console.warn(
+        '[InteractionLoader] Directorio de interacciones no existe:',
+        interactionsPath
+      );
       return;
     }
 
@@ -20,13 +23,14 @@ export class InteractionLoader {
 
     for (const file of interactionFiles) {
       const filePath = path.join(interactionsPath, file);
-      
+
       try {
         const interactionHandler = require(filePath);
 
         const expectedCustomId = file.replace('.ts', '').replace('.js', '');
         const customIdKey = Object.keys(CUSTOM_IDS).find(
-          (key) => CUSTOM_IDS[key as keyof typeof CUSTOM_IDS] === expectedCustomId
+          (key) =>
+            CUSTOM_IDS[key as keyof typeof CUSTOM_IDS] === expectedCustomId
         );
 
         if (customIdKey) {
@@ -39,7 +43,10 @@ export class InteractionLoader {
           );
         }
       } catch (error) {
-        console.error(`[Error] No se pudo cargar la interacción ${file}:`, error);
+        console.error(
+          `[Error] No se pudo cargar la interacción ${file}:`,
+          error
+        );
       }
     }
   }

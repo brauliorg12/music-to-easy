@@ -8,7 +8,7 @@ class PlayHandler extends MusicCommandHandler {
   }
 
   protected getInstruction(): string {
-    return '💡 Pégalo en el chat + nombre/URL de canción';
+    return '💡 Copia y Pega en el chat + nombre/URL de canción, Reproduce música desde YouTube, Spotify, etc.';
   }
 }
 

@@ -3,7 +3,6 @@ class BotState {
   public musicHelpChannel: string | null = null;
   public lastHelpMessageId: string | null = null;
   private channelId: string | null = null;
-  private lastMessageId: string | null = null;
 
   private constructor() {}
 
