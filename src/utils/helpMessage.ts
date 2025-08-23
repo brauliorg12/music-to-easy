@@ -14,7 +14,7 @@ export function createHelpMessage() {
       '**Haz click en un botón para obtener el comando listo para usar:**'
     )
     .setFooter({
-      text: '💡 Los comandos aparecerán listos para copiar y pegar',
+      text: '💡 Los comandos aparecerán listos para copiar',
     })
     .setTimestamp();
 

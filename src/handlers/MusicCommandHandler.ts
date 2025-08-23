@@ -26,8 +26,15 @@ export abstract class MusicCommandHandler {
         closeButton
       );
 
+      // Mensaje estructurado para mejor UX sin el icono de nota
+      const message = [
+        '**📋 Copia el comando tocando el campo de abajo:**',
+        `\`\`\`${command}\`\`\``,
+        instruction
+      ].join('\n');
+
       await interaction.reply({
-        content: `\`\`\`${command}\`\`\`\n${instruction}`,
+        content: message,
         components: [row],
         ephemeral: true,
       });
