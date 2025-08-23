@@ -33,10 +33,7 @@ export function createHelpMessage() {
       .setCustomId(CUSTOM_IDS.SKIP)
       .setLabel(' ')
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji('⏭️')
-  );
-
-  const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      .setEmoji('⏭️'),
     new ButtonBuilder()
       .setCustomId(CUSTOM_IDS.QUEUE)
       .setLabel('Cola')
@@ -51,6 +48,6 @@ export function createHelpMessage() {
 
   return {
     embed,
-    components: [row1, row2],
+    components: [row1],
   };
 }
