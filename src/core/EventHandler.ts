@@ -56,7 +56,10 @@ export class EventHandler {
     try {
       const channel = message.channel as TextChannel;
       await this.delay(500);
-      await this.cleanupHelpMessages(channel, botState);
+
+      // Nueva lógica: limpiar TODOS los paneles previos antes de enviar uno nuevo
+      await this.cleanupAllHelpPanels(channel);
+
       const { embed, components } = createHelpMessage();
       const newHelpMessage = await channel.send({
         embeds: [embed],
@@ -67,6 +70,24 @@ export class EventHandler {
     } catch (error) {
       console.error('[Monitor] Error al reposicionar panel de ayuda:', error);
     }
+  }
+
+  // Limpia todos los mensajes de panel de ayuda del bot en el canal
+  private async cleanupAllHelpPanels(channel: TextChannel): Promise<void> {
+    try {
+      const messages = await channel.messages.fetch({ limit: 30 });
+      const helpPanels = messages.filter(
+        (msg) =>
+          msg.author.id === this.client.user?.id &&
+          msg.embeds.length > 0 &&
+          msg.embeds[0].title?.includes('Comandos de Música')
+      );
+      for (const panel of helpPanels.values()) {
+        try {
+          await panel.delete();
+        } catch {}
+      }
+    } catch {}
   }
 
   private shouldRepositionPanel(message: Message): boolean {
