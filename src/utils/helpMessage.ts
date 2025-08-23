@@ -11,7 +11,7 @@ export function createHelpMessage() {
     .setColor(0x00ae86)
     .setTitle('🎵 Comandos de Música - Ayuda Rápida')
     .setDescription(
-      '**Haz click en un botón para obtener el comando listo para usar:**'
+      '**Haz click en un botón para obtener el comando:**'
     )
     .setFooter({
       text: '💡 Los comandos aparecerán listos para copiar',

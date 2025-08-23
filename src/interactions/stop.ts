@@ -8,7 +8,7 @@ class StopHandler extends MusicCommandHandler {
   }
 
   protected getInstruction(): string {
-    return '💡 Copia y Pega en el chat para detener la música';
+    return '💡 Pega en el chat para detener la música';
   }
 }
 

@@ -3,22 +3,26 @@ dotenv.config();
 
 import { BotClient } from './core/BotClient';
 
-// Initialize and start the bot
-const TOKEN = process.env.DISCORD_TOKEN;
-
-if (!TOKEN) {
-  console.error('[ERROR] DISCORD_TOKEN no está definido en el archivo .env');
-  process.exit(1);
+function validateEnv(): void {
+  if (!process.env.DISCORD_TOKEN) {
+    console.error('[ERROR] DISCORD_TOKEN no está definido en el archivo .env');
+    process.exit(1);
+  }
 }
 
-const bot = new BotClient();
+function setupGracefulShutdown(bot: BotClient): void {
+  process.on('SIGINT', () => {
+    console.log('\n[Music to Easy] Cerrando bot...');
+    bot.destroy();
+    process.exit(0);
+  });
+}
 
-// Graceful shutdown handling
-process.on('SIGINT', () => {
-  console.log('\n[Music to Easy] Cerrando bot...');
-  bot.destroy();
-  process.exit(0);
-});
+function main(): void {
+  validateEnv();
+  const bot = new BotClient();
+  setupGracefulShutdown(bot);
+  bot.login(process.env.DISCORD_TOKEN);
+}
 
-// Start the bot
-bot.login(TOKEN);
+main();

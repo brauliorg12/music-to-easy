@@ -9,24 +9,26 @@ import { CUSTOM_IDS } from '../utils/constants';
 
 export async function execute(interaction: ButtonInteraction): Promise<void> {
   try {
-    // Crear embed informativo actualizado con los comandos y funcionamiento del bot
     const helpEmbed = new EmbedBuilder()
       .setColor(0x3498db)
       .setTitle('❓ Ayuda de Music to Easy')
       .setDescription(
-        '**Controla la música fácilmente usando los botones del panel o comandos de bots de música externos.**'
+        [
+          'Music to Easy **no reproduce música ni se conecta a canales de voz**.',
+          '',
+          'Este bot te ayuda a usar otros bots de música (Mee6, FredBoat, Jockie, etc.) de forma más sencilla:',
+          '• Crea un panel de botones persistente en el canal que elijas.',
+          '• Al pulsar un botón, te muestra el comando listo para copiar y pegar en el chat del bot de música que prefieras.',
+          '• El panel se mantiene siempre visible y se reposiciona automáticamente si otros mensajes lo desplazan.',
+          '',
+          '👉 **Los botones NO ejecutan comandos automáticamente, solo los muestran para que los copies y pegues tú mismo.**'
+        ].join('\n')
       )
       .addFields(
         {
           name: '🎵 ¿Cómo usar el panel?',
           value:
-            '1. Usa el comando `/music` para activar el panel de control en este canal.\n2. Haz click en los botones del panel para obtener comandos listos para copiar y pegar en el chat.\n3. El panel se mantiene siempre visible al final del canal para fácil acceso.',
-          inline: false,
-        },
-        {
-          name: '📋 ¿Qué hace este bot?',
-          value:
-            '• No reproduce música directamente, sino que te ayuda a usar bots de música externos (como MEE6, Rythm, FredBoat, etc.) de forma más sencilla.\n• Los botones generan comandos como `m!p <canción>` para que los pegues en el chat y el bot de música correspondiente los ejecute.',
+            '1. Un administrador ejecuta `/music` en el canal deseado.\n2. Usa los botones del panel para obtener comandos listos para copiar.\n3. Pega el comando en el chat del bot de música de tu preferencia.',
           inline: false,
         },
         {
@@ -37,11 +39,10 @@ export async function execute(interaction: ButtonInteraction): Promise<void> {
         }
       )
       .setFooter({
-        text: 'Music to Easy - Controla la música sin complicaciones',
+        text: 'Music to Easy - Controla la música sin complicaciones (usando otros bots)',
       })
       .setTimestamp();
 
-    // Crear botón de cerrar
     const closeButton = new ButtonBuilder()
       .setCustomId(CUSTOM_IDS.CLOSE)
       .setLabel('Cerrar')

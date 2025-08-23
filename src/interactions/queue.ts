@@ -8,7 +8,7 @@ class QueueHandler extends MusicCommandHandler {
   }
 
   protected getInstruction(): string {
-    return '💡 Copia y Pega en el chat para ver la cola de reproducción';
+    return '💡 Pega en el chat para ver la cola de reproducción';
   }
 }
 
