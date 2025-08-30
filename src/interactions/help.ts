@@ -17,18 +17,18 @@ export async function execute(interaction: ButtonInteraction): Promise<void> {
           'Music to Easy **no reproduce música ni se conecta a canales de voz**.',
           '',
           'Este bot te ayuda a usar otros bots de música (Mee6, FredBoat, Jockie, etc.) de forma más sencilla:',
-          '• Crea un panel de botones persistente en el canal que elijas.',
-          '• Al pulsar un botón, te muestra el comando listo para copiar y pegar en el chat del bot de música que prefieras.',
+          '• Crea un panel persistente en el canal que elijas.',
+          '• El panel muestra los comandos más usados listos para copiar y pegar en el chat del bot de música que prefieras.',
           '• El panel se mantiene siempre visible y se reposiciona automáticamente si otros mensajes lo desplazan.',
           '',
-          '👉 **Los botones NO ejecutan comandos automáticamente, solo los muestran para que los copies y pegues tú mismo.**'
+          '👉 **El panel NO ejecuta comandos automáticamente, solo los muestra para que los copies y pegues tú mismo.**'
         ].join('\n')
       )
       .addFields(
         {
           name: '🎵 ¿Cómo usar el panel?',
           value:
-            '1. Un administrador ejecuta `/music` en el canal deseado.\n2. Usa los botones del panel para obtener comandos listos para copiar.\n3. Pega el comando en el chat del bot de música de tu preferencia.',
+            '1. Un administrador ejecuta `/music` en el canal deseado.\n2. Usa los comandos del panel para copiar y pegar.\n3. Pega el comando en el chat del bot de música de tu preferencia.',
           inline: false,
         },
         {

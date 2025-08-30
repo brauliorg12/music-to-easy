@@ -1,6 +1,6 @@
 # 🎵 Music to Easy
 
-Bot de Discord que facilita el uso de comandos de música de otros bots mediante un **panel de botones persistente** y comandos slash de configuración. Music to Easy no reproduce música directamente, sino que te ayuda a usar otros bots de música de forma más sencilla.
+Bot de Discord que facilita el uso de comandos de música de otros bots mediante un **panel persistente** y comandos slash de configuración. Music to Easy no reproduce música directamente, sino que te ayuda a usar otros bots de música de forma más sencilla.
 
 ![Version](https://img.shields.io/github/v/release/brauliorg12/music-to-easy)
 ![License](https://img.shields.io/github/license/brauliorg12/music-to-easy)
@@ -10,7 +10,7 @@ Bot de Discord que facilita el uso de comandos de música de otros bots mediante
 
 ## 🚀 ¿Qué es Music to Easy?
 
-Music to Easy crea un **panel de control** con botones en el canal que elijas. Al pulsar un botón, el bot te muestra el comando listo para copiar y pegar en el chat, facilitando el uso de bots de música populares (Mee6, Jockie, FredBoat, etc).
+Music to Easy crea un **panel de control** con comandos en el canal que elijas. Al pulsar un botón, el bot te muestra el comando listo para copiar y pegar en el chat, facilitando el uso de bots de música populares (Mee6, Jockie, FredBoat, etc).
 
 ---
 
@@ -25,16 +25,17 @@ Music to Easy crea un **panel de control** con botones en el canal que elijas. A
 
 ---
 
-## 🎛️ Panel de Botones
+## 🎛️ Panel de Comandos
 
-El panel incluye botones para las acciones más comunes (Play, Stop, Skip, Queue, Ayuda). Al pulsar un botón, el bot te muestra el comando correspondiente para que lo copies y pegues en el chat del bot de música que uses.
+El panel muestra los comandos más comunes (Play, Stop, Next, Listado) listos para copiar y pegar.  
+Solo tienes que hacer click en el bloque de código del comando y pegarlo en el chat del bot de música que uses.
 
 ---
 
 ## ✨ Características principales
 
 - Panel persistente: Siempre visible y se reposiciona automáticamente si otros mensajes lo desplazan.
-- Botones intuitivos: Obtén los comandos de música más usados con un click.
+- Comandos listos para copiar: Obtén los comandos de música más usados con un click.
 - Ayuda integrada: Explicaciones claras sobre cómo usar el panel.
 - Fácil configuración: Solo dos comandos para activar o desactivar el sistema.
 
@@ -73,8 +74,8 @@ El panel incluye botones para las acciones más comunes (Play, Stop, Skip, Queue
 ## 🎮 Uso rápido
 
 1. Un administrador ejecuta `/music` en el canal deseado.
-2. El panel de botones aparece y se mantiene siempre visible.
-3. Los usuarios usan los botones para obtener el comando y lo pegan en el chat del bot de música.
+2. El panel de comandos aparece y se mantiene siempre visible.
+3. Los usuarios copian el comando y lo pegan en el chat del bot de música.
 4. El botón de ayuda muestra instrucciones claras sobre cómo usar el panel.
 
 ---

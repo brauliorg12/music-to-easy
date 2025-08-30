@@ -120,53 +120,6 @@ export class EventHandler {
     return false;
   }
 
-  private async cleanupHelpMessages(
-    channel: TextChannel,
-    botState: any
-  ): Promise<void> {
-    try {
-      const messages = await channel.messages.fetch({ limit: 20 });
-      const ourMessages = messages.filter(
-        (msg) =>
-          msg.author.id === this.client.user?.id &&
-          msg.embeds.length > 0 &&
-          msg.embeds[0].title?.includes('Comandos de Música')
-      );
-      for (const ourMessage of ourMessages.values()) {
-        try {
-          await ourMessage.delete();
-          console.log('[Monitor] Mensaje anterior de ayuda eliminado');
-        } catch (error: any) {
-          if (error.code !== 10008) {
-            console.log(
-              `[Monitor] No se pudo eliminar mensaje: ${error.message}`
-            );
-          }
-        }
-      }
-      await this.deleteLastMessageById(channel, botState.getLastMessageId());
-    } catch (error: any) {
-      console.log(`[Monitor] Error en limpieza masiva: ${error.message}`);
-      await this.deleteLastMessageById(channel, botState.getLastMessageId());
-    } finally {
-      botState.clearLastMessageId();
-    }
-  }
-
-  private async deleteLastMessageById(
-    channel: TextChannel,
-    messageId?: string
-  ) {
-    if (!messageId) return;
-    try {
-      const oldMessage = await channel.messages.fetch(messageId);
-      await oldMessage.delete();
-      console.log('[Monitor] Mensaje del estado eliminado correctamente');
-    } catch {
-      // Ignorar errores
-    }
-  }
-
   private logPanelReposition(message: Message, channel: TextChannel): void {
     const authorName = message.author.tag;
     if (message.author.bot) {

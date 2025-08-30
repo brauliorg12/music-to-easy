@@ -1,44 +1,44 @@
-import {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from 'discord.js';
-import { CUSTOM_IDS } from './constants';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { CUSTOM_IDS, MUSIC_COMMANDS } from './constants';
 
 export function createHelpMessage() {
   const embed = new EmbedBuilder()
-    .setColor(0x00ae86)
-    .setTitle('🎵 Comandos de Música - Ayuda Rápida')
-    .setDescription(
-      '**Haz click en un botón para obtener el comando:**'
+    .setColor(0x3498db)
+    .setTitle('🎵 Comandos de Música')
+    .setDescription('Haz click en el bloque de código para copiar el comando y pégalo en el chat del bot de música.')
+    .addFields(
+      {
+        name: '▶️ Play',
+        value: `\`\`\`${MUSIC_COMMANDS.PLAY}\`\`\``,
+        inline: true,
+      },
+      {
+        name: '⏹️ Stop',
+        value: `\`\`\`${MUSIC_COMMANDS.STOP}\`\`\``,
+        inline: true,
+      },
+      {
+        name: '\u200B',
+        value: '\u200B',
+        inline: true,
+      },
+      {
+        name: '⏭️ Siguiente',
+        value: `\`\`\`${MUSIC_COMMANDS.SKIP}\`\`\``,
+        inline: true,
+      },
+      {
+        name: '📜 Listado',
+        value: `\`\`\`${MUSIC_COMMANDS.QUEUE}\`\`\``,
+        inline: true,
+      }
     )
     .setFooter({
-      text: '💡 Los comandos aparecerán listos para copiar',
+      text: '💡 Los comandos aparecen listos para copiar y pegar.',
     })
     .setTimestamp();
 
-  const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.PLAY)
-      .setLabel(' ')
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji('▶️'),
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.STOP)
-      .setLabel(' ')
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji('⏹️'),
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.SKIP)
-      .setLabel(' ')
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji('⏭️'),
-    new ButtonBuilder()
-      .setCustomId(CUSTOM_IDS.QUEUE)
-      .setLabel('Cola')
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji('📜'),
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(CUSTOM_IDS.HELP)
       .setLabel('Ayuda')
@@ -48,6 +48,6 @@ export function createHelpMessage() {
 
   return {
     embed,
-    components: [row1],
+    components: [row],
   };
 }
