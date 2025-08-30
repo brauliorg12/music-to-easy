@@ -84,7 +84,32 @@ export class EventHandler {
     try {
       const channel = message.channel as TextChannel;
       await this.delay(500);
-      await cleanupAllHelpPanels(this.client.user!.id, channel);
+
+      // Limpia SOLO si el mensaje anterior existe y es diferente al actual
+      if (state.lastHelpMessageId) {
+        try {
+          const lastMessage = await channel.messages.fetch(state.lastHelpMessageId);
+          if (lastMessage) {
+            await lastMessage.delete();
+          }
+        } catch {
+          // El mensaje puede ya no existir, ignorar
+        }
+      }
+
+      // Antes de crear el nuevo panel, verifica que no haya otro panel del bot en los últimos 5 mensajes
+      const recentMessages = await channel.messages.fetch({ limit: 5 });
+      const alreadyPanel = recentMessages.find(
+        (msg) =>
+          msg.author.id === this.client.user?.id &&
+          msg.embeds.length > 0 &&
+          msg.embeds[0].title?.includes('Comandos de Música')
+      );
+      if (alreadyPanel) {
+        // Ya hay un panel, no crear otro
+        return;
+      }
+
       const { embed, components } = createHelpMessage();
       const newHelpMessage = await channel.send({
         embeds: [embed],
