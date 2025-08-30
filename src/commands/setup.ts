@@ -7,10 +7,11 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  ChannelType,
 } from 'discord.js';
 import { createHelpMessage } from '../utils/helpMessage';
-import BotState from '../utils/botState';
 import { CUSTOM_IDS } from '../utils/constants';
+import { writePanelState, readPanelState } from '../utils/stateManager';
 
 export const data = new SlashCommandBuilder()
   .setName('music')
@@ -18,53 +19,78 @@ export const data = new SlashCommandBuilder()
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
 export async function execute(interaction: CommandInteraction) {
-  const botState = BotState.getInstance();
+  // Log temporal para debug
+  // console.log('[DEBUG] interaction.channel:', interaction.channel);
+
+  let channel: TextChannel | null = null;
+  if (interaction.channel && 'type' in interaction.channel) {
+    channel = interaction.channel as TextChannel;
+  } else if (interaction.guild && interaction.channelId) {
+    // Fallback: intenta buscar el canal por ID
+    const fetched = await interaction.guild.channels.fetch(interaction.channelId).catch(() => null);
+    if (fetched && 'type' in fetched) {
+      channel = fetched as TextChannel;
+      console.log('[DEBUG] Canal obtenido por fetch:', channel);
+    }
+  }
+
+  const allowedTypes = [
+    ChannelType.GuildText,
+    ChannelType.GuildAnnouncement,
+    ChannelType.PublicThread,
+    ChannelType.PrivateThread,
+    ChannelType.AnnouncementThread,
+  ];
+
+  if (
+    !channel ||
+    !allowedTypes.includes(channel.type)
+  ) {
+    await interaction.reply({
+      content: '❌ Este comando solo puede ser usado en canales de texto de servidor.',
+      ephemeral: true,
+    });
+    return;
+  }
 
   try {
-    // Verificar que el canal existe y es un canal de texto
-    if (!interaction.channel || !interaction.channel.isTextBased()) {
-      await interaction.reply({
-        content: '❌ Este comando solo puede ser usado en canales de texto.',
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const channel = interaction.channel as TextChannel;
-
-    // Limpiar mensaje anterior si existe
-    const currentChannel = botState.getChannel();
-    if (currentChannel) {
-      const lastMessageId = botState.getLastMessageId();
-      if (lastMessageId) {
-        try {
-          const targetChannel = interaction.guild?.channels.cache.get(currentChannel) as TextChannel;
-          if (targetChannel) {
-            const lastMessage = await targetChannel.messages.fetch(lastMessageId);
-            await lastMessage.delete();
-            console.log(`[Music] Mensaje anterior eliminado del canal #${targetChannel.name}`);
-          }
-        } catch (error) {
-          console.log('[Music] Mensaje anterior ya no existe o no se pudo eliminar');
+    // Leer estado anterior
+    const prevState = interaction.guildId ? readPanelState(interaction.guildId) : null;
+    if (prevState?.channelId && prevState.lastHelpMessageId) {
+      try {
+        const targetChannel = interaction.guild?.channels.cache.get(prevState.channelId);
+        if (
+          targetChannel &&
+          typeof (targetChannel as any).messages?.fetch === 'function' &&
+          typeof (targetChannel as any).send === 'function'
+        ) {
+          const lastMessage = await (targetChannel as TextChannel).messages.fetch(prevState.lastHelpMessageId);
+          await lastMessage.delete();
+          console.log(`[Music] Mensaje anterior eliminado del canal #${(targetChannel as TextChannel).name}`);
         }
+      } catch {
+        console.log('[Music] Mensaje anterior ya no existe o no se pudo eliminar');
       }
     }
-
-    // Guardar el ID del canal en el estado del bot
-    botState.setChannel(interaction.channelId);
 
     // Enviar mensaje inicial de ayuda
     const { embed, components } = createHelpMessage();
 
-    // Responder a la interacción (este será el mensaje principal)
     await interaction.reply({
       embeds: [embed],
       components: components,
     });
 
-    // Obtener el mensaje para guardar su ID
     const message = await interaction.fetchReply();
-    botState.setLastMessageId(message.id);
+
+    // Guardar el estado en disco
+    if (interaction.guildId) {
+      writePanelState({
+        guildId: interaction.guildId,
+        channelId: interaction.channelId,
+        lastHelpMessageId: message.id,
+      });
+    }
 
     console.log(
       `[Music] Panel activado en canal #${channel.name} (${interaction.channelId}) por ${interaction.user.tag}`

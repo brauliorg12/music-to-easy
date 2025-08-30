@@ -53,8 +53,13 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 1. Clona el repositorio.
 2. Instala dependencias con `npm install`.
 3. Copia `.env.example` a `.env` y edítalo.
-4. Despliega los comandos con `npm run deploy`.
-5. Ejecuta el bot con `npm run dev`.
+4. **Invita el bot a tu servidor usando este enlace personalizado:**  
+   [Invitar Music to Easy a tu servidor](https://discord.com/oauth2/authorize?client_id=1030804069599678524&scope=bot%20applications.commands&permissions=274878221440)
+5. Despliega los comandos con `npm run deploy`.
+6. Ejecuta el bot con `npm run dev`.
+
+> **Nota:**  
+> La instalación NO es automática. Debes invitar el bot manualmente usando el enlace anterior, ya que Discord requiere autorización explícita para cada servidor.
 
 ---
 

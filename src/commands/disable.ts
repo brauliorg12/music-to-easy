@@ -6,9 +6,11 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChannelType,
 } from 'discord.js';
-import BotState from '../utils/botState';
 import { CUSTOM_IDS } from '../utils/constants';
+import { getStateFilePath, readPanelState } from '../utils/stateManager';
+import fs from 'fs';
 
 export const data = new SlashCommandBuilder()
   .setName('disable')
@@ -16,23 +18,32 @@ export const data = new SlashCommandBuilder()
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
 export async function execute(interaction: CommandInteraction) {
-  const botState = BotState.getInstance();
-
   try {
-    // Verificar que el canal existe y es un canal de texto
-    if (!interaction.channel || !interaction.channel.isTextBased()) {
+    // Verificar que el canal existe y es un canal de texto de servidor
+    if (
+      !interaction.channel ||
+      ![ChannelType.GuildText, ChannelType.GuildAnnouncement].includes(interaction.channel.type)
+    ) {
       await interaction.reply({
-        content: '❌ Este comando solo puede ser usado en canales de texto.',
+        content: '❌ Este comando solo puede ser usado en canales de texto de servidor.',
         ephemeral: true,
       });
       return;
     }
 
-    const channel = interaction.channel as TextChannel;
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      await interaction.reply({
+        content: '❌ No se pudo identificar el servidor.',
+        ephemeral: true,
+      });
+      return;
+    }
 
-    // Verificar si el sistema está activo
-    const currentChannel = botState.getChannel();
-    if (!currentChannel) {
+    // Leer el estado del panel para este servidor
+    const state = readPanelState(guildId);
+
+    if (!state?.channelId) {
       const closeButton = new ButtonBuilder()
         .setCustomId(CUSTOM_IDS.CLOSE)
         .setLabel('Cerrar')
@@ -50,12 +61,11 @@ export async function execute(interaction: CommandInteraction) {
     }
 
     // Intentar eliminar el último mensaje de ayuda si existe
-    const lastMessageId = botState.getLastMessageId();
-    if (lastMessageId) {
+    if (state.lastHelpMessageId) {
       try {
-        const targetChannel = interaction.guild?.channels.cache.get(currentChannel) as TextChannel;
+        const targetChannel = interaction.guild?.channels.cache.get(state.channelId) as TextChannel;
         if (targetChannel) {
-          const lastMessage = await targetChannel.messages.fetch(lastMessageId);
+          const lastMessage = await targetChannel.messages.fetch(state.lastHelpMessageId);
           await lastMessage.delete();
           console.log(`[Disable] Mensaje de ayuda eliminado del canal #${targetChannel.name}`);
         }
@@ -64,17 +74,15 @@ export async function execute(interaction: CommandInteraction) {
       }
     }
 
-    // Limpiar el estado del bot
-    const previousChannelId = currentChannel;
-    const previousChannel = interaction.guild?.channels.cache.get(previousChannelId);
+    // Elimina el archivo de estado del servidor
+    const stateFile = getStateFilePath(guildId);
+    if (fs.existsSync(stateFile)) {
+      fs.unlinkSync(stateFile);
+      console.log(`[DB] Archivo de estado eliminado para guild ${guildId}`);
+    }
+
+    const previousChannel = interaction.guild?.channels.cache.get(state.channelId);
     const previousChannelName = previousChannel ? (previousChannel as TextChannel).name : 'canal desconocido';
-
-    botState.clearChannel();
-    botState.clearLastMessageId();
-
-    console.log(
-      `[Disable] Sistema desactivado del canal #${previousChannelName} (${previousChannelId}) por ${interaction.user.tag}`
-    );
 
     // Crear botón de cerrar para el mensaje de confirmación
     const closeButton = new ButtonBuilder()
@@ -94,9 +102,9 @@ export async function execute(interaction: CommandInteraction) {
 
   } catch (error) {
     console.error(`[Disable] Error al desactivar el sistema:`, error);
-    
+
     const errorMessage = '❌ Hubo un error al desactivar el sistema. Inténtalo de nuevo.';
-    
+
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
         content: errorMessage,
