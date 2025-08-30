@@ -21,22 +21,25 @@ export async function execute(interaction: ButtonInteraction): Promise<void> {
           '• El panel muestra los comandos más usados listos para copiar y pegar en el chat del bot de música que prefieras.',
           '• El panel se mantiene siempre visible y se reposiciona automáticamente si otros mensajes lo desplazan.',
           '',
-          '👉 **El panel NO ejecuta comandos automáticamente, solo los muestra para que los copies y pegues tú mismo.**'
+          '👉 **El panel NO ejecuta comandos automáticamente, solo los muestra para que los copies y pegues tú mismo.**',
+          '',
+          '🎵 **¿Cómo usar el panel?**',
+          '1. Un administrador ejecuta `/music` en el canal deseado.',
+          '2. Usa los comandos del panel para copiar y pegar.',
+          '3. Pega el comando en el chat del bot de música de tu preferencia.',
+          '',
+          '🔗 **Sobre el comando `m!p` (Play):**',
+          '- Puedes escribir `m!p <nombre de la canción>` para buscar y reproducir una canción por nombre.',
+          '- O puedes usar `m!p <URL>` para reproducir directamente desde YouTube, Spotify, SoundCloud, etc.',
+          '- Ejemplos:',
+          '  - `m!p Shape of You`',
+          '  - `m!p https://www.youtube.com/watch?v=JGwWNGJdvx8`',
+          '  - `m!p https://open.spotify.com/track/7qiZfU4dY1lWllzX7mPBI3`',
+          '',
+          'ℹ️ **Comandos propios**',
+          '• `/music` - Activa el panel de control de música en el canal actual.',
+          '• `/disable` - Desactiva y elimina el panel de música del canal actual.',
         ].join('\n')
-      )
-      .addFields(
-        {
-          name: '🎵 ¿Cómo usar el panel?',
-          value:
-            '1. Un administrador ejecuta `/music` en el canal deseado.\n2. Usa los comandos del panel para copiar y pegar.\n3. Pega el comando en el chat del bot de música de tu preferencia.',
-          inline: false,
-        },
-        {
-          name: 'ℹ️ Comandos propios',
-          value:
-            '• `/music` - Activa el panel de control de música en el canal actual.\n• `/disable` - Desactiva y elimina el panel de música del canal actual.',
-          inline: false,
-        }
       )
       .setFooter({
         text: 'Music to Easy - Controla la música sin complicaciones (usando otros bots)',
