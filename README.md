@@ -38,6 +38,7 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 - Comandos listos para copiar: Obtén los comandos de música más usados con un click.
 - Ayuda integrada: Explicaciones claras sobre cómo usar el panel.
 - Fácil configuración: Solo dos comandos para activar o desactivar el sistema.
+- **Sugerencia automática de comandos:** Si envías un link de YouTube o Spotify, o simplemente escribes el nombre de una canción en el chat, el bot te sugerirá automáticamente el comando `m!p` correspondiente listo para copiar y pegar. Solo tú verás la sugerencia y podrás cerrarla con el botón "Cerrar".
 
 ---
 
@@ -82,6 +83,7 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 2. El panel de comandos aparece y se mantiene siempre visible.
 3. Los usuarios copian el comando y lo pegan en el chat del bot de música.
 4. El botón de ayuda muestra instrucciones claras sobre cómo usar el panel.
+5. **Sugerencia automática:** Si escribes un link de YouTube/Spotify o el nombre de una canción directamente en el chat, el bot te sugerirá el comando `m!p` correspondiente para que lo copies y pegues fácilmente.
 
 ---
 
