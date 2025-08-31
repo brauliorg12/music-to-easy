@@ -16,12 +16,14 @@ Music to Easy crea un **panel de control** con comandos en el canal que elijas. 
 
 ## 🟢 Comandos Slash Disponibles
 
-| Comando    | Descripción                                                   | Permisos      |
-| ---------- | ------------------------------------------------------------- | ------------- |
-| `/music`   | Activa el panel de control de música en el canal actual       | Administrador |
-| `/disable` | Desactiva el sistema y elimina el panel del canal configurado | Administrador |
+| Comando              | Descripción                                                                            | Permisos      |
+| -------------------- | -------------------------------------------------------------------------------------- | ------------- |
+| `/music`             | Activa el panel de control de música en el canal actual                                | Administrador |
+| `/disable`           | Desactiva el sistema y elimina el panel del canal configurado                          | Administrador |
+| `/autodetect`        | Activa la sugerencia automática de comandos por links o nombres **en el canal actual** | Administrador |
+| `/disableautodetect` | Desactiva la sugerencia automática de comandos **en el canal actual**                  | Administrador |
 
-> **Nota:** Estos son los únicos comandos propios de este bot.
+> **Nota:** Todos los comandos afectan solo al canal donde se ejecutan, excepto `/disable` que elimina el panel del canal configurado.
 
 ---
 
@@ -38,7 +40,11 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 - Comandos listos para copiar: Obtén los comandos de música más usados con un click.
 - Ayuda integrada: Explicaciones claras sobre cómo usar el panel.
 - Fácil configuración: Solo dos comandos para activar o desactivar el sistema.
-- **Sugerencia automática de comandos:** Si envías un link de YouTube o Spotify, o simplemente escribes el nombre de una canción en el chat, el bot te sugerirá automáticamente el comando `m!p` correspondiente listo para copiar y pegar. Solo tú verás la sugerencia y podrás cerrarla con el botón "Cerrar".
+- **Sugerencia automática de comandos por canal (opcional):**  
+  Puedes activar o desactivar la sugerencia automática de comandos con `/autodetect` y `/disableautodetect` en cualquier canal.
+  - **Solo funciona en canales donde el panel `/music` está activo.**
+  - Si desactivas la sugerencia en un canal, el bot no sugerirá comandos automáticamente en ese canal hasta que la vuelvas a activar.
+  - Si desactivas el panel con `/disable`, la sugerencia automática también dejará de funcionar en ese canal.
 
 ---
 
@@ -83,7 +89,10 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 2. El panel de comandos aparece y se mantiene siempre visible.
 3. Los usuarios copian el comando y lo pegan en el chat del bot de música.
 4. El botón de ayuda muestra instrucciones claras sobre cómo usar el panel.
-5. **Sugerencia automática:** Si escribes un link de YouTube/Spotify o el nombre de una canción directamente en el chat, el bot te sugerirá el comando `m!p` correspondiente para que lo copies y pegues fácilmente.
+5. **Sugerencia automática (opcional y por canal):**
+   - Activa la sugerencia automática en el canal con `/autodetect`.
+   - Desactívala en el canal con `/disableautodetect`.
+   - Solo funcionará en canales donde el panel `/music` esté activo.
 
 ---
 
@@ -134,6 +143,15 @@ Puedes cambiar los comandos generados por los botones editando el archivo de con
 ## 📊 Logs y Monitoreo
 
 El bot muestra logs claros en consola sobre su estado, canales configurados y acciones realizadas.
+
+---
+
+## ℹ️ Notas sobre la sugerencia automática
+
+- La sugerencia automática es **por canal** y **persistente**.
+- Solo los administradores pueden activar o desactivar la función en cada canal.
+- Si el panel de música se elimina de un canal, la sugerencia automática también dejará de funcionar en ese canal.
+- Puedes tener la sugerencia activa en unos canales y desactivada en otros, según tus necesidades.
 
 ---
 

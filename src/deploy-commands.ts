@@ -4,6 +4,8 @@ dotenv.config();
 import { REST, Routes } from 'discord.js';
 import { data as musicCommand } from './commands/setup';
 import { data as disableCommand } from './commands/disable';
+import { data as autodetectCommand } from './commands/autodetect';
+import { data as disableAutoDetectCommand } from './commands/disableautodetect';
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -14,7 +16,12 @@ if (!TOKEN || !CLIENT_ID) {
   );
 }
 
-const commands = [musicCommand.toJSON(), disableCommand.toJSON()];
+const commands = [
+  musicCommand.toJSON(),
+  disableCommand.toJSON(),
+  autodetectCommand.toJSON(),
+  disableAutoDetectCommand.toJSON(),
+];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 

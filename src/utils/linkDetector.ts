@@ -6,6 +6,8 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import { CUSTOM_IDS } from '../utils/constants';
+import { readAutoDetectState } from './autoDetectState';
+import { readPanelState } from './stateManager';
 
 // Expresiones regulares para detectar links de YouTube y Spotify desde variables de entorno
 const youtubeRegex = new RegExp(process.env.YOUTUBE_REGEX ?? '', 'i');
@@ -46,6 +48,21 @@ export async function handleMusicLinkSuggestion(
 
   // Ignora mensajes de bots o comandos válidos
   if (message.author.bot || message.content.startsWith(prefix)) {
+    return;
+  }
+
+  // Solo sugerir si está activado en el canal y el panel está activo en ese canal
+  if (
+    !message.guildId ||
+    !message.channelId ||
+    !readAutoDetectState(message.guildId, message.channelId)
+  ) {
+    return;
+  }
+
+  // Verifica que el panel esté activo en este canal
+  const panelState = readPanelState(message.guildId);
+  if (!panelState || panelState.channelId !== message.channelId) {
     return;
   }
 

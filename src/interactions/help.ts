@@ -39,6 +39,7 @@ export async function execute(interaction: ButtonInteraction): Promise<void> {
           '✨ **Sugerencia automática de comandos:**',
           '- Si envías un link de YouTube o Spotify, o simplemente escribes el nombre de una canción en el chat, el bot te sugerirá automáticamente el comando `m!p` correspondiente listo para copiar y pegar.',
           '- Solo tú verás la sugerencia y podrás cerrarla con el botón "Cerrar".',
+          '- Puedes activar o desactivar esta función con los comandos `/autodetect` y `/disableautodetect` en cualquier momento para cada canal que el bot esté configurado.',
           '',
           'ℹ️ **Comandos propios**',
           '• `/music` - Activa el panel de control de música en el canal actual.',
