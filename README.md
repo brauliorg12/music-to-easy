@@ -20,7 +20,6 @@ Music to Easy crea un **panel de control** con comandos en el canal que elijas. 
 | ---------- | ------------------------------------------------------------- | ------------- |
 | `/music`   | Activa el panel de control de música en el canal actual       | Administrador |
 | `/disable` | Desactiva el sistema y elimina el panel del canal configurado | Administrador |
-| `m!pause`  | Pausa la reproducción de música                               | Usuario       |
 
 > **Nota:** Estos son los únicos comandos propios de este bot.
 
