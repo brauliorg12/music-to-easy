@@ -14,7 +14,7 @@ export function createHelpMessage() {
       'Haz click en el bloque de código para copiar el comando y pégalo en el chat del bot de música.\n' +
         '> Usa `m!p <nombre o URL>` para reproducir una canción por nombre o desde YouTube, Spotify, etc.'
     )
-    // Primera fila: Play y Stop
+    // Primera fila: Play, Pause y Stop
     .addFields(
       {
         name: '▶️ Play',
@@ -22,8 +22,8 @@ export function createHelpMessage() {
         inline: true,
       },
       {
-        name: '\u200B',
-        value: '\u200B',
+        name: '⏸️ Pausa',
+        value: '```\nm!pause```',
         inline: true,
       },
       {
