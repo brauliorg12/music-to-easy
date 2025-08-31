@@ -74,7 +74,10 @@ export async function execute(interaction: CommandInteraction) {
     }
 
     // Enviar mensaje inicial de ayuda
-    const { embed, components } = createHelpMessage();
+    const { embed, components } = createHelpMessage(
+      interaction.guildId ?? undefined,
+      interaction.channelId ?? undefined
+    );
 
     await interaction.reply({
       embeds: [embed],

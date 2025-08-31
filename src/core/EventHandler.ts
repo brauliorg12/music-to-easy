@@ -8,18 +8,19 @@ import {
   Guild,
 } from 'discord.js';
 import { BotClient } from './BotClient';
-import { createHelpMessage } from '../utils/helpMessage';
-import {
-  MUSIC_BOT_PREFIXES,
-  COMMON_MUSIC_COMMANDS,
-} from '../utils/constants';
+import { MUSIC_BOT_PREFIXES, COMMON_MUSIC_COMMANDS } from '../utils/constants';
 import { printLogo, printStartupInfo, logServerInfo } from '../utils/logs';
 import { logPanelReposition } from '../utils/panelLogger';
 import { cleanupAllHelpPanels } from '../utils/panelCleaner';
 import { handleModal } from '../utils/modalHandler';
 import { handleCommand } from '../utils/commandHandler';
 import { handleButton } from '../utils/buttonHandler';
-import { readPanelState, writePanelState, BotPanelState } from '../utils/stateManager';
+import {
+  readPanelState,
+  writePanelState,
+  BotPanelState,
+} from '../utils/stateManager';
+import { repositionPanel } from '../utils/repositionPanel';
 import fs from 'fs';
 import path from 'path';
 
@@ -41,14 +42,22 @@ export class EventHandler {
     const dbDir = path.resolve(__dirname, '../../db');
     if (!fs.existsSync(dbDir)) return;
 
-    const files = fs.readdirSync(dbDir).filter(f => f.startsWith('bot-state-') && f.endsWith('.json'));
+    const files = fs
+      .readdirSync(dbDir)
+      .filter((f) => f.startsWith('bot-state-') && f.endsWith('.json'));
     for (const file of files) {
       try {
-        const state: BotPanelState = JSON.parse(fs.readFileSync(path.join(dbDir, file), 'utf8'));
+        const state: BotPanelState = JSON.parse(
+          fs.readFileSync(path.join(dbDir, file), 'utf8')
+        );
         if (!state.guildId || !state.channelId) continue;
-        const guild = await this.client.guilds.fetch(state.guildId).catch(() => null);
+        const guild = await this.client.guilds
+          .fetch(state.guildId)
+          .catch(() => null);
         if (!guild) continue;
-        const channel = await this.client.channels.fetch(state.channelId).catch(() => null);
+        const channel = await this.client.channels
+          .fetch(state.channelId)
+          .catch(() => null);
         if (
           channel &&
           channel.isTextBased() &&
@@ -56,19 +65,31 @@ export class EventHandler {
           typeof channel.send === 'function' &&
           channel.type === 0 // GuildText
         ) {
-          await cleanupAllHelpPanels(this.client.user!.id, channel as TextChannel);
-          const { embed, components } = createHelpMessage();
-          const newPanel = await channel.send({ embeds: [embed], components });
+          await cleanupAllHelpPanels(
+            this.client.user!.id,
+            channel as TextChannel
+          );
+          // Usa repositionPanel para que el footer sea dinámico según autodetect
+          const newPanel = await repositionPanel(
+            channel as TextChannel,
+            state.guildId,
+            state.channelId
+          );
           // Actualiza el estado con el nuevo mensaje
           writePanelState({
             guildId: state.guildId,
             channelId: state.channelId,
             lastHelpMessageId: newPanel.id,
           });
-          console.log(`[Panel] Panel de comandos repuesto automáticamente en ${guild.name} (${guild.id}).`);
+          console.log(
+            `[Panel] Panel de comandos repuesto automáticamente en ${guild.name} (${guild.id}).`
+          );
         }
       } catch (err) {
-        console.warn('[Panel] No se pudo reponer el panel automáticamente:', err);
+        console.warn(
+          '[Panel] No se pudo reponer el panel automáticamente:',
+          err
+        );
       }
     }
   }
@@ -88,7 +109,9 @@ export class EventHandler {
       // Limpia SOLO si el mensaje anterior existe y es diferente al actual
       if (state.lastHelpMessageId) {
         try {
-          const lastMessage = await channel.messages.fetch(state.lastHelpMessageId);
+          const lastMessage = await channel.messages.fetch(
+            state.lastHelpMessageId
+          );
           if (lastMessage) {
             await lastMessage.delete();
           }
@@ -110,11 +133,12 @@ export class EventHandler {
         return;
       }
 
-      const { embed, components } = createHelpMessage();
-      const newHelpMessage = await channel.send({
-        embeds: [embed],
-        components,
-      });
+      // Usa repositionPanel para que el footer sea dinámico según autodetect
+      const newHelpMessage = await repositionPanel(
+        channel,
+        message.guild.id,
+        state.channelId
+      );
       writePanelState({
         guildId: message.guild.id,
         channelId: state.channelId,

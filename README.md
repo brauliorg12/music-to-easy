@@ -152,6 +152,17 @@ El bot muestra logs claros en consola sobre su estado, canales configurados y ac
 - Solo los administradores pueden activar o desactivar la función en cada canal.
 - Si el panel de música se elimina de un canal, la sugerencia automática también dejará de funcionar en ese canal.
 - Puedes tener la sugerencia activa en unos canales y desactivada en otros, según tus necesidades.
+- **Al ejecutar `/disable`, también se elimina la configuración de autodetect para ese canal, dejando todo limpio y sincronizado.**
+
+---
+
+## 🧹 Limpieza automática e inteligente de sugerencias
+
+- Los mensajes de sugerencia de comando ("Sugerencia de comando") se eliminan automáticamente después de un tiempo (por defecto, 60 segundos) o cuando el usuario cierra el mensaje con el botón "Cerrar".
+- Cuando el bot se reinicia o se reactiva el panel principal con `/music`, el bot limpia automáticamente solo las sugerencias **antiguas** (de más de 60 segundos) en el canal, dejando las sugerencias recientes para no interrumpir a los usuarios que están interactuando.
+- Al ejecutar `/disableautodetect`, **todas las sugerencias activas del canal se eliminan inmediatamente**.
+- Así, el canal se mantiene limpio y sin acumulación de mensajes efímeros, pero los usuarios nunca pierden una sugerencia reciente por culpa de un reinicio o reposicionamiento del panel.
+- Este sistema es automático y no requiere intervención manual de los administradores.
 
 ---
 

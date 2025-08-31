@@ -5,8 +5,14 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import { CUSTOM_IDS, MUSIC_COMMANDS } from './constants';
+import { readAutoDetectState } from './autoDetectState';
 
-export function createHelpMessage() {
+export function createHelpMessage(guildId?: string, channelId?: string) {
+  const autodetectActive =
+    guildId && channelId
+      ? readAutoDetectState(guildId, channelId)
+      : false;
+
   const embed = new EmbedBuilder()
     .setColor(0x3498db)
     .setTitle('🎵 Comandos de Música')
@@ -46,7 +52,9 @@ export function createHelpMessage() {
       }
     )
     .setFooter({
-      text: '💡 Los comandos aparecen listos para copiar y pegar.',
+      text: autodetectActive
+        ? '💡 También puedes escribir directamente el link o nombre de la canción en este canal y el bot te sugerirá el comando automáticamente.'
+        : '💡 Los comandos aparecen listos para copiar y pegar.',
     })
     .setTimestamp();
 

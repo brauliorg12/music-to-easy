@@ -11,6 +11,7 @@ import {
 import { CUSTOM_IDS } from '../utils/constants';
 import { getStateFilePath, readPanelState } from '../utils/stateManager';
 import fs from 'fs';
+import path from 'path';
 
 export const data = new SlashCommandBuilder()
   .setName('disable')
@@ -72,6 +73,17 @@ export async function execute(interaction: CommandInteraction) {
       } catch (error) {
         console.log('[Disable] No se pudo eliminar el mensaje de ayuda (puede que ya haya sido eliminado)');
       }
+    }
+
+    // Elimina el archivo de autodetect para este canal si existe
+    const autodetectFile = path.join(
+      __dirname,
+      '../../db',
+      `autodetect-${guildId}-${state.channelId}.json`
+    );
+    if (fs.existsSync(autodetectFile)) {
+      fs.unlinkSync(autodetectFile);
+      console.log(`[DB] Archivo de autodetect eliminado para canal ${state.channelId}`);
     }
 
     // Elimina el archivo de estado del servidor

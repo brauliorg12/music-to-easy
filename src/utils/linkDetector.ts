@@ -13,6 +13,8 @@ import { readPanelState } from './stateManager';
 const youtubeRegex = new RegExp(process.env.YOUTUBE_REGEX ?? '', 'i');
 const spotifyRegex = new RegExp(process.env.SPOTIFY_REGEX ?? '', 'i');
 
+const SUGGESTION_TIMEOUT = 60; // segundos
+
 /**
  * Verifica si el contenido del mensaje es un link de música soportado.
  * @param content Contenido del mensaje a analizar.
@@ -81,13 +83,13 @@ export async function handleMusicLinkSuggestion(
     .setTitle('🎵 Sugerencia de comando')
     .setDescription(
       [
-        `Usa el comando para reproducir tu enlace o búsqueda:`,
+        `Usa el comando para ▶️ reproducir tu enlace o búsqueda:`,
         `\`\`\`\n${prefix} ${linkOrName}\n\`\`\``,
         '_Puedes cerrar este mensaje con el botón de abajo._',
       ].join('\n')
     )
     .setFooter({
-      text: 'Music to Easy - Sugerencia automática',
+      text: `Este mensaje se autodestruirá en ${SUGGESTION_TIMEOUT} segundos o puedes cerrarlo manualmente.`,
     })
     .setTimestamp();
 
@@ -101,10 +103,36 @@ export async function handleMusicLinkSuggestion(
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton);
 
   try {
-    await message.reply({
+    const sent = await message.reply({
       embeds: [embed],
       components: [row],
+      allowedMentions: { repliedUser: false },
     });
+
+    // Marca el mensaje internamente con el tag (sin mostrarlo al usuario)
+    await sent.edit({
+      embeds: [
+        embed.setFooter({
+          text: `Este mensaje se autodestruirá en ${SUGGESTION_TIMEOUT} segundos o puedes cerrarlo manualmente.`,
+        }),
+      ],
+      components: [row],
+    });
+
+    // Auto-cierre tras SUGGESTION_TIMEOUT segundos si no fue cerrado manualmente
+    setTimeout(async () => {
+      try {
+        const fetched = await sent.channel.messages.fetch(sent.id).catch(() => null);
+        // Verifica que el mensaje siga siendo una sugerencia (por título y autor)
+        if (
+          fetched &&
+          fetched.author.id === message.client.user?.id &&
+          fetched.embeds[0]?.title === '🎵 Sugerencia de comando'
+        ) {
+          await fetched.delete();
+        }
+      } catch {}
+    }, SUGGESTION_TIMEOUT * 1000);
   } catch (err) {
     // Si ocurre un error al enviar el mensaje, lo registramos en consola
     console.warn('[Advertencia] No se pudo enviar sugerencia de comando:', err);
