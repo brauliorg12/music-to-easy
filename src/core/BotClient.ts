@@ -4,12 +4,16 @@ import { InteractionLoader } from './InteractionLoader';
 import { EventHandler } from './EventHandler';
 
 /**
- * Music to Easy - Discord Bot
- * Extended Discord Client with additional collections for interactions
+ * Clase principal del bot "Music to Easy".
+ * Extiende el cliente de Discord.js y agrega colecciones para comandos, botones y modales.
+ * Se encarga de cargar comandos, interacciones y eventos al inicializarse.
  */
 export class BotClient extends Client {
+  // Colección de comandos slash (por nombre)
   public commands: Collection<string, any> = new Collection();
+  // Colección de manejadores de botones (por customId)
   public buttonInteractions: Collection<string, any> = new Collection();
+  // Colección de manejadores de modales (por customId)
   public modalInteractions: Collection<string, any> = new Collection();
 
   private commandLoader: CommandLoader;
@@ -32,6 +36,10 @@ export class BotClient extends Client {
     this.initialize();
   }
 
+  /**
+   * Inicializa el bot cargando comandos, interacciones y eventos.
+   * Se llama automáticamente en el constructor.
+   */
   private initialize(): void {
     this.commandLoader.loadCommands();
     this.interactionLoader.loadInteractions();

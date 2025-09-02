@@ -48,8 +48,11 @@ export async function handleMusicLinkSuggestion(
 ): Promise<void> {
   const prefix = 'm!p';
 
-  // Ignora mensajes de bots o comandos válidos
-  if (message.author.bot || message.content.startsWith(prefix)) {
+  // Ignora mensajes de bots o comandos válidos (case-insensitive)
+  if (
+    message.author.bot ||
+    message.content.trim().toLowerCase().startsWith(prefix)
+  ) {
     return;
   }
 
@@ -122,7 +125,9 @@ export async function handleMusicLinkSuggestion(
     // Auto-cierre tras SUGGESTION_TIMEOUT segundos si no fue cerrado manualmente
     setTimeout(async () => {
       try {
-        const fetched = await sent.channel.messages.fetch(sent.id).catch(() => null);
+        const fetched = await sent.channel.messages
+          .fetch(sent.id)
+          .catch(() => null);
         // Verifica que el mensaje siga siendo una sugerencia (por título y autor)
         if (
           fetched &&

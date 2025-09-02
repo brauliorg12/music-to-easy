@@ -5,7 +5,6 @@ import {
   ButtonInteraction,
   ModalSubmitInteraction,
   TextChannel,
-  Guild,
 } from 'discord.js';
 import { BotClient } from './BotClient';
 import { MUSIC_BOT_PREFIXES, COMMON_MUSIC_COMMANDS } from '../utils/constants';
@@ -23,16 +22,34 @@ import {
 import { repositionPanel } from '../utils/repositionPanel';
 import fs from 'fs';
 import path from 'path';
+import { handleJockieMusicAnnouncement } from '../utils/jockieMusicAnnouncer';
+import { isRelevantMusicBotMessage } from '../utils/musicBotEventHelpers';
 
 export class EventHandler {
   constructor(private client: BotClient) {}
 
+  /**
+   * Registra los listeners principales de eventos de Discord para el bot.
+   * - 'clientReady': Inicialización y reposición de paneles al conectar.
+   * - 'messageCreate': Manejo de mensajes para paneles, comandos y anuncios de música.
+   * - 'interactionCreate': Manejo de slash commands, botones y modales.
+   * Este método es fundamental para que el bot reaccione a la actividad en Discord.
+   */
   public setupEventHandlers(): void {
     this.client.once('clientReady', this.onReady.bind(this));
     this.client.on('messageCreate', this.onMessageCreate.bind(this));
     this.client.on('interactionCreate', this.onInteractionCreate.bind(this));
   }
 
+  /**
+   * Evento que se ejecuta una sola vez cuando el bot está listo y conectado a Discord.
+   * - Imprime el logo y la información de inicio.
+   * - Muestra información de los servidores conectados.
+   * - Reposiciona automáticamente los paneles de ayuda en todos los servidores donde el bot está presente,
+   *   asegurando que el panel esté visible tras un reinicio.
+   * - Limpia paneles viejos y actualiza el estado persistente.
+   * Este método es clave para la experiencia de usuario y la persistencia del panel tras reinicios.
+   */
   private async onReady(): Promise<void> {
     printLogo();
     printStartupInfo(this.client);
@@ -95,11 +112,21 @@ export class EventHandler {
   }
 
   private async onMessageCreate(message: Message): Promise<void> {
+    // 1. Procesa eventos de bots de música (Jockie Music, etc.) y gestiona el panel y embeds especiales.
+    await handleJockieMusicAnnouncement(message);
+
+    // 2. Si el mensaje es de un bot de música relevante, evita reposicionar el panel aquí para no duplicar acciones.
+    if (isRelevantMusicBotMessage(message)) {
+      return;
+    }
+
+    // 3. Lógica de reposición de panel para comandos de usuario y otros eventos.
     if (!message.guild) return;
     const state = readPanelState(message.guild.id);
     if (!state?.channelId) return;
     if (message.author.id === this.client.user?.id) return;
     if (message.channelId !== state.channelId) return;
+
     if (!this.shouldRepositionPanel(message)) return;
 
     try {

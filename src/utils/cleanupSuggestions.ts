@@ -5,9 +5,9 @@ import { readPanelState } from './stateManager';
 const SUGGESTION_TIMEOUT = 60; // segundos
 
 /**
- * Limpia los mensajes de sugerencia de comando en todos los canales con panel activo,
- * pero solo elimina sugerencias con más de SUGGESTION_TIMEOUT segundos de antigüedad.
- * @param bot Instancia del BotClient
+ * Elimina todos los mensajes de sugerencia de comando ("Sugerencia de comando") que el bot haya dejado en los canales al iniciar.
+ * Mantiene los canales limpios de mensajes viejos de sugerencia.
+ * @param bot Instancia del cliente del bot.
  */
 export async function cleanupAllSuggestions(bot: BotClient): Promise<void> {
   const guilds = bot.guilds.cache;
@@ -18,9 +18,11 @@ export async function cleanupAllSuggestions(bot: BotClient): Promise<void> {
     const channel = guild.channels.cache.get(panelState.channelId);
     if (!channel || channel.type !== 0) continue; // 0 = GuildText
     try {
-      const messages = await (channel as TextChannel).messages.fetch({ limit: 50 });
+      const messages = await (channel as TextChannel).messages.fetch({
+        limit: 50,
+      });
       const suggestionMessages = messages.filter(
-        m =>
+        (m) =>
           m.author.id === bot.user?.id &&
           m.embeds[0]?.title === '🎵 Sugerencia de comando' &&
           m.createdTimestamp < now - SUGGESTION_TIMEOUT * 1000 // Solo las viejas

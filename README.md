@@ -45,6 +45,15 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
   - **Solo funciona en canales donde el panel `/music` está activo.**
   - Si desactivas la sugerencia en un canal, el bot no sugerirá comandos automáticamente en ese canal hasta que la vuelvas a activar.
   - Si desactivas el panel con `/disable`, la sugerencia automática también dejará de funcionar en ese canal.
+- **Embed "Ahora suena":**  
+  Cuando un bot de música (como Jockie Music) inicia la reproducción de una canción, Music to Easy muestra automáticamente un mensaje especial "¡Ahora suena!" con el nombre de la canción y artista. Este mensaje se elimina y actualiza automáticamente cuando cambia la canción o se detiene la reproducción.
+- **Estado dinámico del bot (Activity):**  
+  El estado del bot se actualiza en tiempo real:
+  - Cuando se reproduce una canción, el bot muestra "▶️ - <canción> by <artista>" como estado (tipo Listening).
+  - Cuando no hay música, vuelve al estado por defecto (tipo Watching).
+  - Esto permite a los usuarios saber si hay música sonando y cuál, directamente desde la lista de miembros de Discord.
+- Limpieza automática de mensajes "Ahora suena" y paneles para evitar duplicados o mensajes obsoletos.
+- Integración inteligente con bots de música populares: detecta eventos relevantes y actualiza el panel y los mensajes en consecuencia.
 
 ---
 
@@ -103,6 +112,10 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 - `src/handlers/`: Handlers base
 - `src/interactions/`: Handlers de botones
 - `src/utils/`: Utilidades y helpers
+- `src/utils/jockieMusicAnnouncer.ts`: Lógica para detectar eventos de bots de música y mostrar el embed "Ahora suena", actualizar el panel y el estado del bot.
+- `src/utils/musicBotEventHelpers.ts`: Helpers para filtrar mensajes relevantes de bots de música y evitar duplicados.
+- `src/utils/jockiePanelActions.ts`: Acciones para enviar/eliminar paneles y mensajes especiales como "Ahora suena".
+- `src/constants/botConstants.ts`: Constantes para el estado/activity del bot y emojis usados en el panel y mensajes.
 - `src/index.ts`: Punto de entrada principal
 
 ---
@@ -153,6 +166,70 @@ El bot muestra logs claros en consola sobre su estado, canales configurados y ac
 - Si el panel de música se elimina de un canal, la sugerencia automática también dejará de funcionar en ese canal.
 - Puedes tener la sugerencia activa en unos canales y desactivada en otros, según tus necesidades.
 - **Al ejecutar `/disable`, también se elimina la configuración de autodetect para ese canal, dejando todo limpio y sincronizado.**
+
+---
+
+## 🧩 Arquitectura y Solución Técnica
+
+### Flujo de eventos y actualización del panel
+
+1. **Recepción de mensajes de bots de música:**  
+   El bot escucha todos los mensajes en los canales configurados. Cuando detecta un mensaje relevante de un bot de música (por ejemplo, Jockie Music), analiza el contenido y los embeds para identificar eventos como "started playing" o fin de la cola.
+2. **Actualización del embed "Ahora suena":**  
+   - Si comienza una nueva canción, se elimina el mensaje anterior de "Ahora suena" (si existe) y se envía uno nuevo con la información de la canción.
+   - Si la reproducción termina o el bot de música se va, se elimina el mensaje "Ahora suena" y se actualiza el panel.
+3. **Actualización del estado del bot (Activity):**  
+   - Al detectar una canción en reproducción, el bot cambia su estado a "▶️ - <canción> by <artista>" (Listening).
+   - Cuando no hay música, vuelve al estado por defecto (Watching).
+   - Esto se gestiona centralizadamente para evitar inconsistencias.
+4. **Reposicionamiento y limpieza del panel:**  
+   - El panel de comandos se mantiene siempre visible. Si otros mensajes lo desplazan, el bot lo elimina y lo vuelve a enviar automáticamente.
+   - Se evita la duplicación de paneles y mensajes especiales mediante lógica de control y limpieza inteligente.
+5. **Sincronización multi-servidor:**  
+   - Toda la lógica es multi-servidor y multi-canal, con persistencia de estado por servidor/canal.
+   - Al reiniciar el bot, se reponen los paneles y se limpian mensajes efímeros antiguos.
+
+### Componentes clave
+
+- **EventHandler:**  
+  Orquesta todos los eventos de Discord y delega a los módulos especializados según el tipo de mensaje o interacción.
+- **jockieMusicAnnouncer:**  
+  Detecta eventos de bots de música y gestiona el embed "Ahora suena", el panel y el estado del bot.
+- **musicBotEventHelpers:**  
+  Filtra mensajes para evitar acciones duplicadas o innecesarias.
+- **jockiePanelActions:**  
+  Centraliza el envío y eliminación de paneles y mensajes especiales.
+- **stateManager:**  
+  Persiste el estado de los paneles y configuraciones por servidor/canal.
+
+---
+
+## 📝 Ejemplo de mensaje "Ahora suena"
+
+Cuando se detecta una nueva canción, el bot envía un embed como este:
+
+```
+🎶 ¡Ahora suena!
+Canción: Never Gonna Give You Up
+Artista: Rick Astley
+```
+
+Este mensaje se elimina automáticamente cuando cambia la canción o termina la reproducción.
+
+---
+
+## 🟢 Estado del bot (Activity)
+
+- **En reproducción:**  
+  El bot muestra en su estado:  
+  `▶️ - Never Gonna Give You Up by Rick Astley`  
+  (Tipo: Escuchando/Listening)
+- **Idle o ayuda:**  
+  El bot muestra:  
+  `🤖 Bot de ayuda de comandos de música`  
+  (Tipo: Viendo/Watching)
+
+Esto permite a los usuarios saber si hay música sonando y cuál, sin necesidad de mirar el canal.
 
 ---
 

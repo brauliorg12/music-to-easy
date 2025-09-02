@@ -6,6 +6,12 @@ import { CUSTOM_IDS } from '../utils/constants';
 export class InteractionLoader {
   constructor(private client: BotClient) {}
 
+  /**
+   * Carga automáticamente todos los manejadores de interacciones (botones) desde el directorio /interactions.
+   * Asocia cada archivo con su CUSTOM_ID correspondiente y lo registra en el cliente.
+   * Si el archivo no tiene un CUSTOM_ID asociado, muestra una advertencia.
+   * Si ocurre un error al cargar un archivo, lo muestra en consola.
+   */
   public loadInteractions(): void {
     const interactionsPath = path.join(__dirname, '../interactions');
 
@@ -25,8 +31,10 @@ export class InteractionLoader {
       const filePath = path.join(interactionsPath, file);
 
       try {
+        // Importa el manejador de interacción
         const interactionHandler = require(filePath);
 
+        // Determina el CUSTOM_ID esperado a partir del nombre del archivo
         const expectedCustomId = file.replace('.ts', '').replace('.js', '');
         const customIdKey = Object.keys(CUSTOM_IDS).find(
           (key) =>
@@ -35,6 +43,7 @@ export class InteractionLoader {
 
         if (customIdKey) {
           const customId = CUSTOM_IDS[customIdKey as keyof typeof CUSTOM_IDS];
+          // Registra el manejador en el cliente
           this.client.buttonInteractions.set(customId, interactionHandler);
           console.log(`[Carga] Manejador '${customId}' cargado.`);
         } else {

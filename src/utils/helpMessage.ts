@@ -7,12 +7,21 @@ import {
 import { CUSTOM_IDS, MUSIC_COMMANDS } from './constants';
 import { readAutoDetectState } from './autoDetectState';
 
+/**
+ * Crea el mensaje de ayuda principal del bot de música.
+ * Incluye un embed con los comandos más usados y un botón de ayuda.
+ * El footer y los comandos pueden variar según si la autodetección está activa en el canal.
+ *
+ * @param guildId (opcional) ID del servidor para verificar autodetección.
+ * @param channelId (opcional) ID del canal para verificar autodetección.
+ * @returns Un objeto con el embed y los componentes (botones) para enviar en Discord.
+ */
 export function createHelpMessage(guildId?: string, channelId?: string) {
+  // Determina si la autodetección está activa en este canal
   const autodetectActive =
-    guildId && channelId
-      ? readAutoDetectState(guildId, channelId)
-      : false;
+    guildId && channelId ? readAutoDetectState(guildId, channelId) : false;
 
+  // Crea el embed con los comandos de música
   const embed = new EmbedBuilder()
     .setColor(0x3498db)
     .setTitle('🎵 Comandos de Música')
@@ -53,19 +62,21 @@ export function createHelpMessage(guildId?: string, channelId?: string) {
     )
     .setFooter({
       text: autodetectActive
-        ? '💡 También puedes escribir directamente el link o nombre de la canción en este canal y el bot te sugerirá el comando automáticamente.'
-        : '💡 Los comandos aparecen listos para copiar y pegar.',
+        ? '✨ También puedes escribir directamente el link o nombre de la canción en este canal y el bot te sugerirá el comando automáticamente.'
+        : '✨ Los comandos aparecen listos para copiar y pegar.',
     })
     .setTimestamp();
 
+  // Crea la fila de botones (solo uno de ayuda por ahora)
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(CUSTOM_IDS.HELP)
       .setLabel('Ayuda')
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji('❓')
+      .setEmoji('ℹ️')
   );
 
+  // Devuelve el embed y los componentes para enviar en Discord
   return {
     embed,
     components: [row],

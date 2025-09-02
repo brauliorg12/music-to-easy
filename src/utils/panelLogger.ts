@@ -1,6 +1,14 @@
 import { Message, TextChannel } from 'discord.js';
 import { COMMON_MUSIC_BOTS } from './constants';
 
+/**
+ * Registra en consola información sobre la reposición del panel de ayuda.
+ * El log varía según si el mensaje que disparó la reposición fue de un bot de música o de un usuario.
+ * Incluye información sobre el tipo de mensaje, el autor y un preview del contenido relevante.
+ *
+ * @param message Mensaje que disparó la reposición del panel.
+ * @param channel Canal de texto donde se repuso el panel.
+ */
 export function logPanelReposition(message: Message, channel: TextChannel) {
   const authorName = message.author.tag;
   if (message.author.bot) {

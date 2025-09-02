@@ -6,6 +6,11 @@ class BotState {
 
   private constructor() {}
 
+  /**
+   * Devuelve la instancia única (singleton) de BotState.
+   * Si no existe, la crea.
+   * @returns Instancia única de BotState.
+   */
   public static getInstance(): BotState {
     if (!BotState.instance) {
       BotState.instance = new BotState();
@@ -13,18 +18,34 @@ class BotState {
     return BotState.instance;
   }
 
+  /**
+   * Establece el ID del canal de ayuda de música.
+   * @param channelId ID del canal de texto donde se encuentra el panel de ayuda.
+   */
   public setChannel(channelId: string): void {
     this.musicHelpChannel = channelId;
   }
 
+  /**
+   * Establece el ID del último mensaje de ayuda enviado.
+   * @param messageId ID del mensaje de ayuda.
+   */
   public setLastMessageId(messageId: string): void {
     this.lastHelpMessageId = messageId;
   }
 
+  /**
+   * Obtiene el ID del canal de ayuda de música actualmente guardado.
+   * @returns ID del canal o null si no está definido.
+   */
   public getChannel(): string | null {
     return this.musicHelpChannel;
   }
 
+  /**
+   * Obtiene el ID del último mensaje de ayuda enviado.
+   * @returns ID del mensaje o null si no está definido.
+   */
   public getLastMessageId(): string | null {
     return this.lastHelpMessageId;
   }

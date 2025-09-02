@@ -10,6 +10,14 @@ export function printLogo() {
     `);
 }
 
+/**
+ * Imprime en consola información relevante al iniciar el bot:
+ * - Tag del usuario del bot
+ * - Fecha y hora local y UTC de inicio
+ * - Canal de ayuda configurado (si existe)
+ *
+ * @param client Instancia del cliente de Discord.
+ */
 export function printStartupInfo(client: Client) {
   const userTag = client.user?.tag;
   const botState = BotState.getInstance();
@@ -27,6 +35,7 @@ export function printStartupInfo(client: Client) {
   const fechaLocal = now.toLocaleString();
   const fechaUTC = now.toISOString();
 
+  // Imprime la información de inicio en consola
   console.log('\x1b[32m%s\x1b[0m', '🟢 Conectado');
   console.log(`[App] Nombre: Music to Easy`);
   console.log(`[App] Usuario Discord: ${userTag}`);
