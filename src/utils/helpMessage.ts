@@ -14,12 +14,23 @@ import { readAutoDetectState } from './autoDetectState';
  *
  * @param guildId (opcional) ID del servidor para verificar autodetección.
  * @param channelId (opcional) ID del canal para verificar autodetección.
+ * @param lyricsEnabled (opcional) Si el botón "Letra" debe estar habilitado.
  * @returns Un objeto con el embed y los componentes (botones) para enviar en Discord.
  */
-export function createHelpMessage(guildId?: string, channelId?: string) {
+export function createHelpMessage(
+  guildId?: string,
+  channelId?: string,
+  lyricsEnabled?: boolean
+) {
   // Determina si la autodetección está activa en este canal
   const autodetectActive =
     guildId && channelId ? readAutoDetectState(guildId, channelId) : false;
+
+  // Si lyricsEnabled no se pasa, lo deduce del estado de actividad global
+  if (lyricsEnabled === undefined) {
+    const client = (globalThis as any).client;
+    lyricsEnabled = client?.currentActivityType === 2; // 2 = LISTENING
+  }
 
   // Crea el embed con los comandos de música
   const embed = new EmbedBuilder()
@@ -69,6 +80,14 @@ export function createHelpMessage(guildId?: string, channelId?: string) {
 
   // Crea la fila de botones (solo uno de ayuda por ahora)
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    // Botón de Letra (habilitado solo si hay canción)
+    new ButtonBuilder()
+      .setCustomId(CUSTOM_IDS.LYRICS)
+      .setLabel('Letra')
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji('📄')
+      .setDisabled(!lyricsEnabled),
+      // Botón de Ayuda
     new ButtonBuilder()
       .setCustomId(CUSTOM_IDS.HELP)
       .setLabel('Ayuda')

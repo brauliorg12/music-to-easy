@@ -1,5 +1,8 @@
 import { ButtonInteraction } from 'discord.js';
 import { BotClient } from '../core/BotClient';
+import { CUSTOM_IDS } from './constants';
+import { handleLyricsButton } from '../lyrics/LyricsManager';
+import { execute as closeExecute } from '../interactions/close';
 
 /**
  * Maneja la interacción de botones personalizados en Discord.
@@ -14,7 +17,17 @@ export async function handleButton(
   client: BotClient,
   interaction: ButtonInteraction
 ): Promise<void> {
-  // Busca el manejador registrado para el customId del botón
+  if (interaction.customId === CUSTOM_IDS.LYRICS) {
+    await handleLyricsButton(interaction);
+    return;
+  }
+  if (
+    interaction.customId.startsWith('close_lyrics_') ||
+    interaction.customId === 'close'
+  ) {
+    await closeExecute(interaction);
+    return;
+  }
   const buttonHandler = client.buttonInteractions.get(interaction.customId);
   if (!buttonHandler) {
     console.warn(
@@ -23,7 +36,6 @@ export async function handleButton(
     return;
   }
   try {
-    // Ejecuta el manejador del botón
     await buttonHandler.execute(interaction);
     console.log(
       `[Interacción] Botón '${interaction.customId}' presionado por ${interaction.user.tag}.`
@@ -33,7 +45,6 @@ export async function handleButton(
       `[ERROR] Error al manejar el botón '${interaction.customId}':`,
       error
     );
-    // Si ya se respondió o difirió la interacción, usa followUp, si no, reply
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
         content: 'Hubo un error al procesar este botón!',

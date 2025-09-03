@@ -1,6 +1,7 @@
 export const CUSTOM_IDS = {
   HELP: 'help',
   CLOSE: 'close', // Solo para mensajes ephemeral
+  LYRICS: 'lyrics',
 } as const;
 
 export const MUSIC_COMMANDS = {

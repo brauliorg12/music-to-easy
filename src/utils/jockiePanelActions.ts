@@ -15,17 +15,22 @@ declare global {
  * @param text Texto a mostrar como estado.
  * @param type Tipo de actividad (0=Playing, 2=Listening, 3=Watching, etc.)
  */
-export function setBotActivity(text: string, type: number = 2) {
+export function setBotActivity(songText: string, type: number = 2) {
+  // songText puede ser: "▶️ - Lloraras by Dimension Latina, Oscar de Leon"
   const client = globalThis.client;
   console.log(
     '[MusicToEasy][DEBUG] Intentando setear actividad:',
-    text,
+    songText,
     'type:',
     type
   );
   if (client && client.user) {
-    client.user.setActivity(text, { type });
-    console.log('[MusicToEasy][DEBUG] Actividad seteada correctamente.');
+    client.user.setActivity(songText, { type });
+    client.currentActivityType = type;
+    console.log(
+      '[MusicToEasy][DEBUG] Actividad seteada correctamente. currentActivityType:',
+      client.currentActivityType
+    );
   } else {
     console.warn(
       '[MusicToEasy][DEBUG] No se pudo setear actividad: client o client.user no disponible.'

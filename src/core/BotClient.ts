@@ -15,10 +15,12 @@ export class BotClient extends Client {
   public buttonInteractions: Collection<string, any> = new Collection();
   // Colección de manejadores de modales (por customId)
   public modalInteractions: Collection<string, any> = new Collection();
+  // Estado de actividad actual del bot (2 = LISTENING, 3 = WATCHING, etc.)
+  public currentActivityType: number | null = null;
 
   private commandLoader: CommandLoader;
   private interactionLoader: InteractionLoader;
-  private eventHandler: EventHandler;
+  public eventHandler: EventHandler;
 
   constructor() {
     super({

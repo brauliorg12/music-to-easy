@@ -27,7 +27,9 @@ export async function execute(interaction: CommandInteraction) {
     channel = interaction.channel as TextChannel;
   } else if (interaction.guild && interaction.channelId) {
     // Fallback: intenta buscar el canal por ID
-    const fetched = await interaction.guild.channels.fetch(interaction.channelId).catch(() => null);
+    const fetched = await interaction.guild.channels
+      .fetch(interaction.channelId)
+      .catch(() => null);
     if (fetched && 'type' in fetched) {
       channel = fetched as TextChannel;
       console.log('[DEBUG] Canal obtenido por fetch:', channel);
@@ -42,12 +44,10 @@ export async function execute(interaction: CommandInteraction) {
     ChannelType.AnnouncementThread,
   ];
 
-  if (
-    !channel ||
-    !allowedTypes.includes(channel.type)
-  ) {
+  if (!channel || !allowedTypes.includes(channel.type)) {
     await interaction.reply({
-      content: '❌ Este comando solo puede ser usado en canales de texto de servidor.',
+      content:
+        '❌ Este comando solo puede ser usado en canales de texto de servidor.',
       ephemeral: true,
     });
     return;
@@ -55,28 +55,60 @@ export async function execute(interaction: CommandInteraction) {
 
   try {
     // Leer estado anterior
-    const prevState = interaction.guildId ? readPanelState(interaction.guildId) : null;
+    const prevState = interaction.guildId
+      ? readPanelState(interaction.guildId)
+      : null;
     if (prevState?.channelId && prevState.lastHelpMessageId) {
       try {
-        const targetChannel = interaction.guild?.channels.cache.get(prevState.channelId);
+        const targetChannel = interaction.guild?.channels.cache.get(
+          prevState.channelId
+        );
         if (
           targetChannel &&
           typeof (targetChannel as any).messages?.fetch === 'function' &&
           typeof (targetChannel as any).send === 'function'
         ) {
-          const lastMessage = await (targetChannel as TextChannel).messages.fetch(prevState.lastHelpMessageId);
-          await lastMessage.delete();
-          console.log(`[Music] Mensaje anterior eliminado del canal #${(targetChannel as TextChannel).name}`);
+          const lastMessage = await (
+            targetChannel as TextChannel
+          ).messages.fetch(prevState.lastHelpMessageId).catch(() => null);
+          if (lastMessage) {
+            await lastMessage.delete();
+            console.log(
+              `[Music] Mensaje anterior eliminado del canal #${
+                (targetChannel as TextChannel).name
+              }`
+            );
+          } else {
+            console.log('[Music] Mensaje anterior ya no existe o no se pudo eliminar');
+          }
         }
       } catch {
-        console.log('[Music] Mensaje anterior ya no existe o no se pudo eliminar');
+        console.log(
+          '[Music] Mensaje anterior ya no existe o no se pudo eliminar'
+        );
       }
+    }
+
+    // Detectar si hay una canción activa (embed de "Ahora suena" del bot de música)
+    let lyricsEnabled = false;
+    if (channel) {
+      const messages = await channel.messages.fetch({ limit: 10 });
+      const musicBotId = process.env.JOCKIE_MUSIC_IDS?.split(',')[0];
+      const nowPlayingMsg = messages.find(
+        (msg) =>
+          msg.author.id === musicBotId &&
+          msg.embeds.length > 0 &&
+          (msg.embeds[0].title?.toLowerCase().includes('ahora suena') ||
+            msg.embeds[0].title?.toLowerCase().includes('now playing'))
+      );
+      lyricsEnabled = !!nowPlayingMsg;
     }
 
     // Enviar mensaje inicial de ayuda
     const { embed, components } = createHelpMessage(
       interaction.guildId ?? undefined,
-      interaction.channelId ?? undefined
+      interaction.channelId ?? undefined,
+      lyricsEnabled
     );
 
     await interaction.reply({
@@ -101,18 +133,18 @@ export async function execute(interaction: CommandInteraction) {
 
     // Crear embed card para el mensaje de confirmación
     const confirmationEmbed = new EmbedBuilder()
-      .setColor(0x00FF7F)
+      .setColor(0x00ff7f)
       .setTitle('🎵 Panel de música activado')
       .addFields(
-        { 
-          name: '📍 Canal configurado', 
-          value: `${channel}`, 
-          inline: false 
+        {
+          name: '📍 Canal configurado',
+          value: `${channel}`,
+          inline: false,
         },
-        { 
-          name: '✨ Funcionalidad', 
-          value: 'El panel se mantendrá siempre al final para fácil acceso', 
-          inline: false 
+        {
+          name: '✨ Funcionalidad',
+          value: 'El panel se mantendrá siempre al final para fácil acceso',
+          inline: false,
         }
       )
       .setFooter({ text: '¡Ahora puedes usar los botones del panel!' })
@@ -125,7 +157,9 @@ export async function execute(interaction: CommandInteraction) {
       .setStyle(ButtonStyle.Secondary)
       .setEmoji('❌');
 
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton);
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      closeButton
+    );
 
     // Enviar confirmación adicional con embed card
     await interaction.followUp({
@@ -135,9 +169,10 @@ export async function execute(interaction: CommandInteraction) {
     });
   } catch (error) {
     console.error(`[Music] Error al activar el panel:`, error);
-    
-    const errorMessage = '❌ Hubo un error al activar el panel de música. Inténtalo de nuevo.';
-    
+
+    const errorMessage =
+      '❌ Hubo un error al activar el panel de música. Inténtalo de nuevo.';
+
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
         content: errorMessage,

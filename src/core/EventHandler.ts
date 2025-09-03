@@ -23,7 +23,12 @@ import { repositionPanel } from '../utils/repositionPanel';
 import fs from 'fs';
 import path from 'path';
 import { handleJockieMusicAnnouncement } from '../utils/jockieMusicAnnouncer';
-import { isRelevantMusicBotMessage } from '../utils/musicBotEventHelpers';
+import { handleMusicPanelEvents } from '../utils/musicPanelEvents';
+import { syncPanelLyricsButton } from '../utils/panelLyricsSync';
+import { setBotActivity } from '../utils/jockiePanelActions';
+import { findJockieNowPlayingSong } from '../utils/activitySync';
+import { onMessageDelete as lyricsOnMessageDelete } from '../lyrics/LyricsManager';
+import type { PartialMessage } from 'discord.js';
 
 export class EventHandler {
   constructor(private client: BotClient) {}
@@ -39,6 +44,7 @@ export class EventHandler {
     this.client.once('clientReady', this.onReady.bind(this));
     this.client.on('messageCreate', this.onMessageCreate.bind(this));
     this.client.on('interactionCreate', this.onInteractionCreate.bind(this));
+    this.client.on('messageDelete', this.onMessageDelete.bind(this));
   }
 
   /**
@@ -59,6 +65,8 @@ export class EventHandler {
     const dbDir = path.resolve(__dirname, '../../db');
     if (!fs.existsSync(dbDir)) return;
 
+    let foundNowPlaying = false;
+    let foundSongText = '';
     const files = fs
       .readdirSync(dbDir)
       .filter((f) => f.startsWith('bot-state-') && f.endsWith('.json'));
@@ -98,6 +106,23 @@ export class EventHandler {
             channelId: state.channelId,
             lastHelpMessageId: newPanel.id,
           });
+          // --- Sincroniza el estado del panel con el estado real del canal ---
+          await syncPanelLyricsButton(channel as TextChannel, state.guildId);
+
+          // --- NUEVO: Usa solo el mensaje real de Jockie Music para setActivity ---
+          const nowPlaying = await findJockieNowPlayingSong(
+            channel as TextChannel
+          );
+          if (nowPlaying && nowPlaying.song) {
+            const artistText = nowPlaying.artists.length > 0 ? ` by ${nowPlaying.artists.join(', ')}` : '';
+            setBotActivity(
+              `▶️ - ${nowPlaying.song}${artistText}`,
+              2
+            );
+            foundNowPlaying = true;
+            foundSongText = `▶️ - ${nowPlaying.song}${artistText}`;
+          }
+          // --- FIN NUEVO ---
           console.log(
             `[Panel] Panel de comandos repuesto automáticamente en ${guild.name} (${guild.id}).`
           );
@@ -109,16 +134,22 @@ export class EventHandler {
         );
       }
     }
+    // Si no se encontró ninguna canción activa, setea el estado por defecto (WATCHING)
+    if (!foundNowPlaying) {
+      setBotActivity('🤖 Bot de ayuda de comandos de música', 3);
+      console.log('[MusicToEasy][DEBUG] Estado de actividad inicial: WATCHING');
+    } else {
+      console.log(
+        `[MusicToEasy][DEBUG] Estado de actividad inicial: LISTENING (${foundSongText})`
+      );
+    }
   }
 
   private async onMessageCreate(message: Message): Promise<void> {
-    // 1. Procesa eventos de bots de música (Jockie Music, etc.) y gestiona el panel y embeds especiales.
     await handleJockieMusicAnnouncement(message);
 
-    // 2. Si el mensaje es de un bot de música relevante, evita reposicionar el panel aquí para no duplicar acciones.
-    if (isRelevantMusicBotMessage(message)) {
-      return;
-    }
+    // Extrae la lógica de eventos relevantes de música
+    await handleMusicPanelEvents(message);
 
     // 3. Lógica de reposición de panel para comandos de usuario y otros eventos.
     if (!message.guild) return;
@@ -175,6 +206,12 @@ export class EventHandler {
     } catch (error) {
       console.error('[Monitor] Error al reposicionar panel de ayuda:', error);
     }
+  }
+
+  private async onMessageDelete(
+    message: Message | PartialMessage
+  ): Promise<void> {
+    await lyricsOnMessageDelete(message, this.client.user?.id ?? '');
   }
 
   private shouldRepositionPanel(message: Message): boolean {

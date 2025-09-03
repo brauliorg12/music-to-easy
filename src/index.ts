@@ -6,7 +6,11 @@ import { Message } from 'discord.js';
 import { handleMusicLinkSuggestion } from './utils/linkDetector';
 import { cleanupAllSuggestions } from './utils/cleanupSuggestions';
 import { setBotActivity } from './utils/jockiePanelActions';
-import { DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE } from './constants/botConstants';
+import {
+  DEFAULT_BOT_STATUS,
+  DEFAULT_BOT_ACTIVITY_TYPE,
+} from './constants/botConstants';
+import { setGlobalClient } from './globalClient';
 
 // Bandera global para saber si el bot está inicializando
 export let isInitializing = true;
@@ -48,6 +52,7 @@ function setupGracefulShutdown(bot: BotClient): void {
 function main(): void {
   validateEnv();
   const bot = new BotClient();
+  setGlobalClient(bot); // NUEVO: expone el bot globalmente
   // Asigna el bot a globalThis.client para que setBotActivity lo encuentre
   (globalThis as any).client = bot;
   setupGracefulShutdown(bot);
@@ -60,6 +65,15 @@ function main(): void {
     );
     // Setea la actividad por defecto al iniciar (tipo Watching)
     setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE);
+    // Log del tipo de actividad
+    console.log(
+      `[MusicToEasy][DEBUG] Estado de actividad inicial:`,
+      bot.currentActivityType === 2
+        ? 'LISTENING'
+        : bot.currentActivityType === 3
+        ? 'WATCHING'
+        : bot.currentActivityType
+    );
   });
 
   // Listener para sugerir el comando correcto si el usuario envía un link de música o nombre de canción directamente en el chat.
