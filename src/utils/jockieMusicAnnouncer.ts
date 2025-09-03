@@ -68,10 +68,7 @@ export async function handleJockieMusicAnnouncement(
       await cleanupLyrics(panelChannel);
 
       // Reenvía el panel de control limpio.
-      await deletePanel(
-        panelChannel,
-        panelState?.lastHelpMessageId ?? undefined
-      );
+      await deletePanel(panelChannel);
       await sendPanel(panelChannel, guild.id);
     }
     return true;
@@ -110,10 +107,7 @@ export async function handleJockieMusicAnnouncement(
         await cleanupLyrics(panelChannel);
 
         // Reenvía el panel y el nuevo embed de "Ahora Suena".
-        await deletePanel(
-          panelChannel,
-          panelState?.lastHelpMessageId ?? undefined
-        );
+        await deletePanel(panelChannel);
         await sendPanel(panelChannel, guild.id);
         await sendNowPlayingEmbed(panelChannel, after, message.client);
 
@@ -138,7 +132,7 @@ export async function handleJockieMusicAnnouncement(
     isRelevantMusicBotMessage(message) &&
     !/started playing\s*.+/i.test(text)
   ) {
-    await deletePanel(panelChannel, panelState?.lastHelpMessageId ?? undefined);
+    await deletePanel(panelChannel);
     await sendPanel(panelChannel, guild.id);
     return true;
   }

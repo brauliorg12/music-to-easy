@@ -39,21 +39,16 @@ export function setBotActivity(songText: string, type: number = 2) {
   }
 }
 
+import { cleanupAllHelpPanels } from './panelCleaner'; // Add this import
+
+// ... (existing setBotActivity function) ...
+
 export async function deletePanel(
   channel: TextChannel,
-  lastHelpMessageId?: string
 ) {
-  if (lastHelpMessageId) {
-    try {
-      const lastPanel = await channel.messages.fetch(lastHelpMessageId);
-      await lastPanel.delete();
-      console.log('[MusicToEasy] Panel anterior eliminado.');
-    } catch {
-      console.warn(
-        '[MusicToEasy] No se pudo eliminar el panel anterior (puede que ya no exista).'
-      );
-    }
-  }
+  // Instead of trying to delete a specific message, clean up all existing panels
+  await cleanupAllHelpPanels(channel.client.user!.id, channel);
+  console.log('[MusicToEasy] Paneles anteriores limpiados.');
 }
 
 export async function sendPanel(
