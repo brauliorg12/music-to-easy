@@ -1,4 +1,9 @@
 import fetch from 'node-fetch';
+import {
+  LyricsNotFoundError,
+  LyricsAPIError,
+  LyricsTimeoutError,
+} from '../errors/LyricsErrors'; // Import the new error classes
 
 /**
  * Limpia el nombre para consulta de letras.
@@ -14,12 +19,16 @@ function normalizeForLyrics(str: string): string {
  * Busca la letra de una canción usando lyrics.ovh.
  * @param artist Nombre del artista
  * @param title Título de la canción
- * @returns Letra de la canción o null si no se encuentra
+ * @returns Letra de la canción
+ * @throws {LyricsNotFoundError} Si la letra no se encuentra.
+ * @throws {LyricsTimeoutError} Si la solicitud excede el tiempo límite.
+ * @throws {LyricsAPIError} Para otros errores de la API.
  */
 export async function fetchLyrics(
   artist: string,
   title: string
-): Promise<string | null> {
+): Promise<string> {
+  // Changed return type to string, as it will throw on error
   const cleanArtist = normalizeForLyrics(artist);
   const cleanTitle = normalizeForLyrics(title);
   const url = `https://api.lyrics.ovh/v1/${encodeURIComponent(
@@ -35,10 +44,18 @@ export async function fetchLyrics(
     clearTimeout(timeout);
     const elapsed = Date.now() - start;
     console.log(`[fetchLyrics] Tiempo de respuesta: ${elapsed} ms`);
+
+    if (res.status === 404) {
+      throw new LyricsNotFoundError(
+        `Lyrics not found for ${artist} - ${title}`
+      );
+    }
+
     if (!res.ok) {
       console.warn(`[fetchLyrics] Respuesta no OK (${res.status}): ${url}`);
-      return null;
+      throw new LyricsAPIError(`API responded with status ${res.status}`);
     }
+
     const data = await res.json();
     if (data.lyrics) {
       console.log(
@@ -46,16 +63,29 @@ export async function fetchLyrics(
       );
       return data.lyrics.trim();
     }
-    console.warn(
-      `[fetchLyrics] No se encontró letra (${cleanArtist} - ${cleanTitle})`
+
+    // If res.ok but no lyrics in data (e.g., empty response or unexpected format)
+    throw new LyricsNotFoundError(
+      `No lyrics field in response for ${artist} - ${title}`
     );
-    return null;
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
       console.error(`[fetchLyrics] Timeout (${cleanArtist} - ${cleanTitle})`);
+      throw new LyricsTimeoutError(
+        `Timeout fetching lyrics for ${artist} - ${title}`
+      );
+    } else if (
+      err instanceof LyricsNotFoundError ||
+      err instanceof LyricsAPIError
+    ) {
+      throw err; // Re-throw custom errors
     } else {
       console.error(`[fetchLyrics] Error consultando lyrics.ovh:`, err);
+      throw new LyricsAPIError(
+        `Unknown error fetching lyrics: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
     }
-    return null;
   }
 }

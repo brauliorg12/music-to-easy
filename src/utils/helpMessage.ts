@@ -37,7 +37,7 @@ export function createHelpMessage(
     .setColor(0x3498db)
     .setTitle('🎵 Comandos de Música')
     .setDescription(
-      'Haz click en el bloque de código para copiar el comando y pégalo en el chat del bot de música.\n' +
+      'Haz click en el bloque de código que desees para copiar el comando y pégalo en el chat.\n' +
         '> Usa `m!p <nombre o URL>` para reproducir una canción por nombre o desde YouTube, Spotify, etc.'
     )
     // Primera fila: Play, Pause y Stop
@@ -73,7 +73,7 @@ export function createHelpMessage(
     )
     .setFooter({
       text: autodetectActive
-        ? '✨ También puedes escribir directamente el link o nombre de la canción en este canal y el bot te sugerirá el comando automáticamente.'
+        ? '✨ También puedes escribir directamente el link o nombre de la canción en este canal y el te sugerirá el comando automáticamente.'
         : '✨ Los comandos aparecen listos para copiar y pegar.',
     })
     .setTimestamp();
@@ -87,7 +87,7 @@ export function createHelpMessage(
       .setStyle(ButtonStyle.Secondary)
       .setEmoji('📄')
       .setDisabled(!lyricsEnabled),
-      // Botón de Ayuda
+    // Botón de Ayuda
     new ButtonBuilder()
       .setCustomId(CUSTOM_IDS.HELP)
       .setLabel('Ayuda')

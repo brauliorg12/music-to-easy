@@ -14,6 +14,8 @@ import { cleanupLyrics } from './lyricsCleanup';
 import { parseJockieSongFromEmbed } from '../utils/activitySync';
 import { findLyrics } from './findLyrics';
 import { sendLyricsMessages } from './sendLyricsMessages';
+import { LyricsAPIError, LyricsTimeoutError } from '../errors/LyricsErrors';
+import { createErrorEmbed } from '../utils/errorEmbed';
 
 const jockieIds = (process.env.JOCKIE_MUSIC_IDS || '')
   .split(',')
@@ -147,9 +149,36 @@ export async function handleLyricsButton(interaction: ButtonInteraction) {
   }
 
   // Busca la letra
-  const lyrics = await findLyrics(artists, title);
+  let lyrics: string | null = null;
+  try {
+    lyrics = await findLyrics(artists, title);
+  } catch (err) {
+    let errorMessage: string;
+    if (err instanceof LyricsTimeoutError) {
+      errorMessage =
+        'Error en la respuesta del servidor (API de letras): La solicitud ha excedido el tiempo límite. Por favor, inténtalo de nuevo en unos segundos.';
+    } else if (err instanceof LyricsAPIError) {
+      errorMessage = `Error en la respuesta del servidor (API de letras): ${err.message}`;
+    } else {
+      console.error('Unexpected error during lyrics fetching:', err);
+      errorMessage = 'Ha ocurrido un error inesperado al buscar la letra.';
+    }
+    // Use the interaction ID as groupId for the close button
+    const { embeds, components } = createErrorEmbed(
+      errorMessage,
+      interaction.id
+    );
+    await interaction.editReply({ embeds, components });
+    return;
+  }
+
   if (!lyrics) {
-    await interaction.editReply('No se encontró la letra para esta canción.');
+    // This case is for LyricsNotFoundError, which is now handled by findLyrics returning null
+    const { embeds, components } = createErrorEmbed(
+      'No se encontró la letra para esta canción.',
+      interaction.id
+    );
+    await interaction.editReply({ embeds, components });
     return;
   }
 

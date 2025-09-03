@@ -44,7 +44,13 @@ export async function sendLyricsMessages(
         {
           color: 0x00ff7f,
           title: 'Letra publicada en el canal',
-          description: `[Ver mensaje](${firstMsg.url})\n\nLa letra se ha publicado en varios mensajes para facilitar la lectura.\nCuando termines, puedes cerrar todos los mensajes de la letra usando el botón "Cerrar" en el último mensaje.`,
+          description: `[Ver mensaje](${firstMsg.url})
+
+${
+  chunks.length === 1
+    ? 'La letra se ha publicado en el canal.\nCuando termines, puedes cerrar el mensaje de la letra usando el botón "Cerrar".'
+    : `La letra se ha publicado en ${chunks.length} partes debido a la extensión de la letra.\nCuando termines, puedes cerrar todos los mensajes de la letra usando el botón "Cerrar" en el último mensaje.`
+}`,
           timestamp: new Date().toISOString(),
         },
       ],
