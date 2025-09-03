@@ -20,12 +20,22 @@ export function parseJockieSongFromEmbed(
     /\[\*\*(.+?)\*\*\s*\*\*by\*\*\s*\*\*(.+?)\*\*\]/i
   );
   if (mdMatch) {
-    const artistsArr = mdMatch[2].split(/,| feat\. | & | y /i).map(a => a.trim()).filter(Boolean);
-    return { song: mdMatch[1].trim(), artist: artistsArr[0] || '', artists: artistsArr };
+    const artistsArr = mdMatch[2]
+      .split(/,| feat\. | & | y /i)
+      .map((a) => a.trim())
+      .filter(Boolean);
+    return {
+      song: mdMatch[1].trim(),
+      artist: artistsArr[0] || '',
+      artists: artistsArr,
+    };
   }
   const match = embedDesc.match(/started playing (.+?) by (.+?)(?:\]|\n|$)/i);
   if (match) {
-    const artistsArr = match[2].split(/,| feat\. | & | y /i).map(a => a.trim()).filter(Boolean);
+    const artistsArr = match[2]
+      .split(/,| feat\. | & | y /i)
+      .map((a) => a.trim())
+      .filter(Boolean);
     return {
       song: match[1].replace(/\[|\]/g, '').trim(),
       artist: artistsArr[0] || '',
@@ -37,12 +47,26 @@ export function parseJockieSongFromEmbed(
 
 /**
  * Busca el mensaje más reciente relevante de Jockie Music en el canal.
+ * Primero, verifica si el bot de Jockie está en un canal de voz.
  * Si es "Started playing ..." devuelve { song, artist, artists }, si es "There are no more tracks" o similar, devuelve null.
  */
 export async function findJockieNowPlayingSong(
   channel: TextChannel
 ): Promise<{ song: string; artist: string; artists: string[] } | null> {
   const musicBotIds = getJockieBotIds();
+  const guild = channel.guild;
+
+  // 1. Comprobación crítica: ¿Está el bot de música en un canal de voz?
+  const isJockieInVoice = guild.members.cache.some(
+    (member) => musicBotIds.includes(member.id) && member.voice.channel
+  );
+
+  if (!isJockieInVoice) {
+    // Si no está en un canal de voz, es imposible que esté sonando música.
+    return null;
+  }
+
+  // 2. Si está en un canal de voz, busca el mensaje de "Ahora suena".
   let lastId: string | undefined = undefined;
   for (let i = 0; i < 4; i++) {
     const messages: Collection<

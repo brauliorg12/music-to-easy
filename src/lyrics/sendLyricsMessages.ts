@@ -1,5 +1,6 @@
 import { TextChannel, Message } from 'discord.js';
 import { createCloseButtonRow } from '../utils/closeButton';
+import { LYRICS_EMBED_FOOTER_PREFIX } from './lyricsCleanup';
 
 /**
  * Envía los embeds de la letra y el mensaje de confirmación al canal.
@@ -21,9 +22,14 @@ export async function sendLyricsMessages(
   for (let i = 0; i < chunks.length; i++) {
     const lyricsEmbed = {
       color: 0x8e44ad,
-      title: `Letra de "${title}" por ${artists.join(', ')}${chunks.length > 1 ? ` (Parte ${i + 1}/${chunks.length})` : ''}`,
+      title: `Letra de "${title}" por ${artists.join(', ')}${
+        chunks.length > 1 ? ` (Parte ${i + 1}/${chunks.length})` : ''
+      }`,
       description: chunks[i],
-      footer: { text: 'Solicitado por ' + userTag, iconURL: userAvatar },
+      footer: {
+        text: `Solicitado por ${userTag}​  • ${LYRICS_EMBED_FOOTER_PREFIX}${groupId}`,
+        iconURL: userAvatar,
+      },
       timestamp: new Date().toISOString(),
     };
     const msg = await channel.send({ embeds: [lyricsEmbed], components: [] });

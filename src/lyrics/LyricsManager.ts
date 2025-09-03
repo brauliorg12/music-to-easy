@@ -10,8 +10,7 @@ import {
   lyricsMessageMap,
   lyricsActiveGroupByChannel,
 } from '../utils/lyricsMessageMap';
-import { forceLyricsCleanup } from './lyricsPanelUtils';
-import { scheduleLyricsCleanup } from './lyricsCleanup';
+import { cleanupLyrics } from './lyricsCleanup';
 import { parseJockieSongFromEmbed } from '../utils/activitySync';
 import { findLyrics } from './findLyrics';
 import { sendLyricsMessages } from './sendLyricsMessages';
@@ -41,7 +40,7 @@ export async function onNowPlaying(channel: TextChannel, guildId: string) {
  * @param delayMs Milisegundos a esperar antes de eliminar.
  */
 export function onStop(channel: TextChannel, delayMs = 10000) {
-  scheduleLyricsCleanup(channel, delayMs);
+  setTimeout(() => cleanupLyrics(channel), delayMs);
 }
 
 /**
@@ -63,7 +62,7 @@ export async function onMessageDelete(
   ) {
     const channel = message.channel;
     if (channel && channel.isTextBased()) {
-      await forceLyricsCleanup(channel as TextChannel);
+      await cleanupLyrics(channel as TextChannel);
     }
   }
 }
@@ -109,6 +108,9 @@ export async function handleLyricsButton(interaction: ButtonInteraction) {
       lyricsActiveGroupByChannel.delete(channel.id);
     }
   }
+
+  // Limpia cualquier embed de letra "huérfano" que haya quedado (ej. por reinicio)
+  await cleanupLyrics(channel);
 
   // Busca el mensaje de Jockie Music con "Started playing"
   const messages = await channel.messages.fetch({ limit: 30 });

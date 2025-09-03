@@ -1,9 +1,8 @@
 import { TextChannel } from 'discord.js';
-import { readPanelState } from './stateManager';
 
 /**
  * Elimina todos los mensajes de panel de ayuda ("Comandos de Música") enviados por el bot
- * en el canal especificado. Útil para limpiar paneles viejos antes de crear uno nuevo.
+ * en el canal especificado. Barre los últimos 100 mensajes para asegurar que no queden duplicados.
  *
  * @param clientUserId ID del usuario del bot (para filtrar solo mensajes del bot).
  * @param channel Canal de texto donde buscar y eliminar los paneles.
@@ -13,38 +12,31 @@ export async function cleanupAllHelpPanels(
   channel: TextChannel
 ): Promise<void> {
   try {
-    // Limpia el panel anterior si existe
-    const state = readPanelState(channel.guildId);
-    if (state?.lastHelpMessageId) {
-      try {
-        const oldPanel = await channel.messages
-          .fetch(state.lastHelpMessageId)
-          .catch(() => null);
-        if (oldPanel) {
-          await oldPanel.delete();
-          console.log(`[MusicToEasy] Panel anterior eliminado.`);
-        }
-      } catch {
-        console.log(
-          '[MusicToEasy] No se pudo eliminar el panel anterior (puede que ya no exista).'
-        );
-      }
-    }
+    // Busca en los últimos 100 mensajes. Es el máximo permitido por la API.
+    const messages = await channel.messages.fetch({ limit: 100 });
 
-    // Busca los últimos 30 mensajes en el canal
-    const messages = await channel.messages.fetch({ limit: 30 });
-    // Filtra los mensajes que son paneles de ayuda enviados por el bot
+    // Filtra TODOS los mensajes que son paneles de ayuda enviados por este bot.
     const helpPanels = messages.filter(
       (msg) =>
         msg.author.id === clientUserId &&
         msg.embeds.length > 0 &&
         msg.embeds[0].title?.includes('Comandos de Música')
     );
-    // Elimina cada panel encontrado
-    for (const panel of helpPanels.values()) {
-      try {
-        await panel.delete();
-      } catch {}
+
+    if (helpPanels.size === 0) {
+      return; // No hay paneles que limpiar.
     }
-  } catch {}
+
+    console.log(
+      `[PanelCleaner] Se encontraron ${helpPanels.size} paneles antiguos para limpiar en #${channel.name}.`
+    );
+
+    // Elimina todos los paneles encontrados.
+    // Usar bulkDelete es más eficiente para borrar múltiples mensajes, pero puede fallar con mensajes de más de 14 días.
+    await channel.bulkDelete(helpPanels);
+  } catch (err) {
+    console.warn(
+      `[PanelCleaner] No se pudieron limpiar los paneles antiguos en el canal #${channel.name}. Puede que no tuviera permisos o los mensajes eran muy antiguos.`
+    );
+  }
 }

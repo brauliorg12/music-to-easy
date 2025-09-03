@@ -1,13 +1,14 @@
 import { Client, TextChannel, EmbedBuilder } from 'discord.js';
 import { createHelpMessage } from './helpMessage';
-import { writePanelState } from './stateManager';
+import { writePanelState, readPanelState } from './stateManager';
+import { BotClient } from '../core/BotClient'; // Added import
 
 /**
  * Declara el tipo de client en globalThis para evitar error TS7017.
  */
 declare global {
   // Ajusta el tipo si tienes una clase personalizada de cliente
-  var client: Client | undefined;
+  var client: BotClient | undefined; // Changed type to BotClient
 }
 
 /**
@@ -55,8 +56,28 @@ export async function deletePanel(
   }
 }
 
-export async function sendPanel(channel: TextChannel, guildId: string) {
-  const { embed, components } = createHelpMessage(guildId, channel.id);
+export async function sendPanel(
+  channel: TextChannel,
+  guildId: string,
+  lyricsEnabled?: boolean
+) {
+  const client = globalThis.client;
+  let finalLyricsEnabled = lyricsEnabled;
+
+  if (finalLyricsEnabled === undefined) {
+    // Si no se especifica, decidir en base a la actividad del bot.
+    // Tipo 2 es "Listening to", lo que implica que hay una canción.
+    finalLyricsEnabled = client?.currentActivityType === 2;
+    console.log(
+      `[MusicToEasy][DEBUG] lyricsEnabled no especificado, decidido por actividad: ${finalLyricsEnabled} (tipo: ${client?.currentActivityType})`
+    );
+  }
+
+  const { embed, components } = createHelpMessage(
+    guildId,
+    channel.id,
+    finalLyricsEnabled
+  );
   const newPanel = await channel.send({ embeds: [embed], components });
   console.log('[MusicToEasy] Panel de comandos enviado con ID:', newPanel.id);
   writePanelState({
@@ -149,5 +170,26 @@ export async function deleteNowPlayingEmbed(
     console.warn(
       '[MusicToEasy] No se pudo eliminar el mensaje "¡Ahora suena!" (puede que ya no exista).'
     );
+  }
+}
+
+/**
+ * Actualiza el panel del canal para deshabilitar el botón "Letra".
+ * @param channel Canal de texto donde está el panel.
+ */
+export async function disableLyricsButtonInPanel(channel: TextChannel) {
+  // Busca el panel actual y lo reemplaza por uno con el botón deshabilitado
+  const state = readPanelState(channel.guildId);
+  if (!state?.lastHelpMessageId) return;
+  try {
+    const panelMsg = await channel.messages.fetch(state.lastHelpMessageId);
+    const { embed, components } = createHelpMessage(
+      channel.guildId,
+      channel.id,
+      false
+    );
+    await panelMsg.edit({ embeds: [embed], components });
+  } catch {
+    // Si el mensaje no existe, ignora
   }
 }

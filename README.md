@@ -189,9 +189,11 @@ El bot muestra logs claros en consola sobre su estado, canales configurados y ac
 
 1. **Recepción de mensajes de bots de música:**  
    El bot escucha todos los mensajes en los canales configurados. Cuando detecta un mensaje relevante de un bot de música (por ejemplo, Jockie Music), analiza el contenido y los embeds para identificar eventos como "started playing" o fin de la cola.
-2. **Actualización del embed "Ahora suena":**
-   - Si comienza una nueva canción, se elimina el mensaje anterior de "Ahora suena" (si existe) y se envía uno nuevo con la información de la canción.
-   - Si la reproducción termina o el bot de música se va, se elimina el mensaje "Ahora suena" y se actualiza el panel.
+2. **Actualización del embed "Ahora suena" y Sincronización de Letras:**
+   - Al comenzar una nueva canción, se eliminan automáticamente el embed de "Ahora suena" y **todos los mensajes de la letra** de la canción anterior.
+   - Se envía un nuevo embed de "Ahora suena" con la información de la nueva canción.
+   - Si la reproducción termina, se limpian tanto el embed de "Ahora suena" como los mensajes de la letra, y el panel de botones se actualiza para deshabilitar el botón de "Letra".
+   - Esta sincronización es atómica y asegura que el canal nunca muestre información inconsistente.
 3. **Actualización del estado del bot (Activity):**
    - Al detectar una canción en reproducción, el bot cambia su estado a "▶️ - <canción> by <artista>" (Listening).
    - Cuando no hay música, vuelve al estado por defecto (Watching).

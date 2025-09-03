@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { BotClient } from './BotClient';
 import { CUSTOM_IDS } from '../utils/constants';
+import { ButtonInteractionHandler } from '../types/Interaction';
 
 export class InteractionLoader {
   constructor(private client: BotClient) {}
@@ -32,7 +33,8 @@ export class InteractionLoader {
 
       try {
         // Importa el manejador de interacción
-        const interactionHandler = require(filePath);
+        const interactionHandler =
+          require(filePath) as ButtonInteractionHandler;
 
         // Determina el CUSTOM_ID esperado a partir del nombre del archivo
         const expectedCustomId = file.replace('.ts', '').replace('.js', '');

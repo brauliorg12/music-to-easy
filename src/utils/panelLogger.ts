@@ -1,5 +1,11 @@
 import { Message, TextChannel } from 'discord.js';
-import { COMMON_MUSIC_BOTS } from './constants';
+
+function getJockieBotIds(): string[] {
+  return (process.env.JOCKIE_MUSIC_IDS || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
 
 /**
  * Registra en consola información sobre la reposición del panel de ayuda.
@@ -28,10 +34,13 @@ export function logPanelReposition(message: Message, channel: TextChannel) {
     } else if (message.content) {
       contentPreview = `"${message.content}"`;
     }
-    const knownMusicBot = COMMON_MUSIC_BOTS.includes(message.author.id);
+    const musicBotIds = getJockieBotIds();
+    const knownMusicBot = musicBotIds.includes(message.author.id);
     const botType = knownMusicBot ? 'bot de música' : 'bot';
     console.log(
-      `[Monitor] Panel reposicionado tras ${messageType} de ${botType} ${authorName} en #${channel.name}${contentPreview ? ': ' + contentPreview : ''}`
+      `[Monitor] Panel reposicionado tras ${messageType} de ${botType} ${authorName} en #${
+        channel.name
+      }${contentPreview ? ': ' + contentPreview : ''}`
     );
   } else {
     const messagePreview = message.content;

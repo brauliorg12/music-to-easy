@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { BotClient } from './BotClient';
+import { Command } from '../types/Command';
 
 export class CommandLoader {
   constructor(private client: BotClient) {}
@@ -32,17 +33,11 @@ export class CommandLoader {
 
       try {
         // Importa el comando
-        const command = require(filePath);
+        const command = require(filePath) as Command;
 
-        // Verifica que tenga las propiedades necesarias
-        if (command.data && command.execute) {
-          this.client.commands.set(command.data.name, command);
-          console.log(`[Carga] Comando '${command.data.name}' cargado.`);
-        } else {
-          console.warn(
-            `[Advertencia] El comando en ${filePath} le falta la propiedad 'data' o 'execute'.`
-          );
-        }
+        // Las propiedades 'data' y 'execute' son validadas por la interfaz Command.
+        this.client.commands.set(command.data.name, command);
+        console.log(`[Carga] Comando '${command.data.name}' cargado.`);
       } catch (error) {
         console.error(`[Error] No se pudo cargar el comando ${file}:`, error);
       }

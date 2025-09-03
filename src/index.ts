@@ -5,11 +5,6 @@ import { BotClient } from './core/BotClient';
 import { Message } from 'discord.js';
 import { handleMusicLinkSuggestion } from './utils/linkDetector';
 import { cleanupAllSuggestions } from './utils/cleanupSuggestions';
-import { setBotActivity } from './utils/jockiePanelActions';
-import {
-  DEFAULT_BOT_STATUS,
-  DEFAULT_BOT_ACTIVITY_TYPE,
-} from './constants/botConstants';
 import { setGlobalClient } from './globalClient';
 
 // Bandera global para saber si el bot está inicializando
@@ -62,17 +57,6 @@ function main(): void {
     await cleanupAllSuggestions(bot);
     console.log(
       '[Music to Easy] Limpieza de sugerencias de comando completada al iniciar.'
-    );
-    // Setea la actividad por defecto al iniciar (tipo Watching)
-    setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE);
-    // Log del tipo de actividad
-    console.log(
-      `[MusicToEasy][DEBUG] Estado de actividad inicial:`,
-      bot.currentActivityType === 2
-        ? 'LISTENING'
-        : bot.currentActivityType === 3
-        ? 'WATCHING'
-        : bot.currentActivityType
     );
   });
 

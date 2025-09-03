@@ -16,6 +16,9 @@ import {
   DEFAULT_BOT_STATUS,
   DEFAULT_BOT_ACTIVITY_TYPE,
 } from '../constants/botConstants';
+import { cleanupLyrics } from '../lyrics/lyricsCleanup';
+
+const currentlyPlayingLock = new Set<string>();
 
 function logWithTime(msg: string) {
   const now = new Date().toLocaleTimeString('es-AR', { hour12: false });
@@ -26,10 +29,13 @@ function logWithTime(msg: string) {
  * Maneja los anuncios del bot de música Jockie Music.
  * Detecta cuándo inicia o termina la reproducción y actualiza el panel/logs.
  * @param message Mensaje recibido de Discord.
+ * @returns true si se manejó un evento de música relevante (inicio/fin/refresco), false en caso contrario.
  */
-export async function handleJockieMusicAnnouncement(message: Message) {
+export async function handleJockieMusicAnnouncement(
+  message: Message
+): Promise<boolean> {
   const guild = message.guild;
-  if (!guild) return;
+  if (!guild) return false;
 
   let text = message.content || '';
   if (message.embeds.length > 0) {
@@ -53,62 +59,80 @@ export async function handleJockieMusicAnnouncement(message: Message) {
     status === JockieMusicStatus.NoMoreTracks ||
     status === JockieMusicStatus.Leaving
   ) {
+    // Cambia el estado del bot a estado por defecto (tipo Watching)
+    setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE);
+
     if (panelChannel) {
-      // Solo elimina una vez el mensaje "¡Ahora suena!"
+      // Limpia el embed de "Ahora Suena" y las letras de la canción anterior.
       await deleteNowPlayingEmbed(panelChannel, message.client.user!.id);
+      await cleanupLyrics(panelChannel);
+
+      // Reenvía el panel de control limpio.
       await deletePanel(
         panelChannel,
         panelState?.lastHelpMessageId ?? undefined
       );
       await sendPanel(panelChannel, guild.id);
     }
-    // Cambia el estado del bot a estado por defecto (tipo Watching)
-    setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE);
-    return;
+    return true;
   }
 
-  let alreadyHandled = false;
   const regex = /started playing\s*(.+)$/i;
   const match = text.match(regex);
 
-  // Paso 1: started playing
+  // Evento: "started playing"
   if (match && match[1] && panelChannel) {
-    const after = match[1].trim();
-    if (after) {
-      // Extrae nombre y artista para el log
-      let song = after;
-      let artist = '';
-      const songArtistMatch = after.match(/^(.*?)\s+by\s+(.*)$/i);
-      if (songArtistMatch) {
-        song = songArtistMatch[1].trim();
-        artist = songArtistMatch[2].trim();
-      }
-      logWithTime(`▶️ Escuchando: "${song}"${artist ? ` by ${artist}` : ''}`);
-      // Cambia el estado del bot a "▶️ - <canción> by <artista>" (tipo Listening)
-      setBotActivity(`▶️ - ${song}${artist ? ` by ${artist}` : ''}`, 2);
-      // Elimina el mensaje "¡Ahora suena!" antes de enviar uno nuevo
-      await deleteNowPlayingEmbed(panelChannel, message.client.user!.id);
-      await deletePanel(
-        panelChannel,
-        panelState?.lastHelpMessageId ?? undefined
+    if (currentlyPlayingLock.has(panelChannel.id)) {
+      console.log(
+        `[MusicToEasy] Ignorando "started playing" duplicado para el canal ${panelChannel.id}`
       );
-      await sendPanel(panelChannel, guild.id);
-      await sendNowPlayingEmbed(panelChannel, after, message.client);
-      // Topic en canal original si es diferente
-      if (
-        message.channel instanceof TextChannel &&
-        message.channel.id !== panelChannel.id
-      ) {
-        await sendNowPlayingEmbed(message.channel, after, message.client);
+      return true; // Evento manejado (ignorado)
+    }
+    currentlyPlayingLock.add(panelChannel.id);
+    try {
+      const after = match[1].trim();
+      if (after) {
+        // Extrae nombre y artista para el log
+        let song = after;
+        let artist = '';
+        const songArtistMatch = after.match(/^(.*?)\s+by\s+(.*)$/i);
+        if (songArtistMatch) {
+          song = songArtistMatch[1].trim();
+          artist = songArtistMatch[2].trim();
+        }
+        logWithTime(`▶️ Escuchando: "${song}"${artist ? ` by ${artist}` : ''}`);
+
+        // Cambia el estado del bot a "▶️ - <canción> by <artista>" (tipo Listening)
+        setBotActivity(`▶️ - ${song}${artist ? ` by ${artist}` : ''}`, 2);
+
+        // Limpia el embed de "Ahora Suena" y las letras de la canción anterior.
+        await deleteNowPlayingEmbed(panelChannel, message.client.user!.id);
+        await cleanupLyrics(panelChannel);
+
+        // Reenvía el panel y el nuevo embed de "Ahora Suena".
+        await deletePanel(
+          panelChannel,
+          panelState?.lastHelpMessageId ?? undefined
+        );
+        await sendPanel(panelChannel, guild.id);
+        await sendNowPlayingEmbed(panelChannel, after, message.client);
+
+        // Envía el embed de "Ahora Suena" también al canal original si es diferente.
+        if (
+          message.channel instanceof TextChannel &&
+          message.channel.id !== panelChannel.id
+        ) {
+          await sendNowPlayingEmbed(message.channel, after, message.client);
+        }
+        return true;
       }
-      alreadyHandled = true;
-      return;
+    } finally {
+      currentlyPlayingLock.delete(panelChannel.id);
     }
   }
 
-  // Paso 1 extra: Evento alternativo solo para bots de música conocidos
+  // Evento alternativo para refrescar el panel si hay un mensaje de bot de música.
   if (
-    !alreadyHandled &&
     panelChannel &&
     message.channel.id === panelChannel.id &&
     isRelevantMusicBotMessage(message) &&
@@ -116,6 +140,7 @@ export async function handleJockieMusicAnnouncement(message: Message) {
   ) {
     await deletePanel(panelChannel, panelState?.lastHelpMessageId ?? undefined);
     await sendPanel(panelChannel, guild.id);
-    return;
+    return true;
   }
+  return false;
 }

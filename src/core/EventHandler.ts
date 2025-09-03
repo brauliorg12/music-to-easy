@@ -4,47 +4,39 @@ import {
   CommandInteraction,
   ButtonInteraction,
   ModalSubmitInteraction,
-  TextChannel,
+  VoiceState,
 } from 'discord.js';
+import type { PartialMessage } from 'discord.js';
 import { BotClient } from './BotClient';
-import { MUSIC_BOT_PREFIXES, COMMON_MUSIC_COMMANDS } from '../utils/constants';
 import { printLogo, printStartupInfo, logServerInfo } from '../utils/logs';
-import { logPanelReposition } from '../utils/panelLogger';
-import { cleanupAllHelpPanels } from '../utils/panelCleaner';
 import { handleModal } from '../utils/modalHandler';
 import { handleCommand } from '../utils/commandHandler';
 import { handleButton } from '../utils/buttonHandler';
-import {
-  readPanelState,
-  writePanelState,
-  BotPanelState,
-} from '../utils/stateManager';
-import { repositionPanel } from '../utils/repositionPanel';
-import fs from 'fs';
-import path from 'path';
 import { handleJockieMusicAnnouncement } from '../utils/jockieMusicAnnouncer';
 import { handleMusicPanelEvents } from '../utils/musicPanelEvents';
-import { syncPanelLyricsButton } from '../utils/panelLyricsSync';
-import { setBotActivity } from '../utils/jockiePanelActions';
-import { findJockieNowPlayingSong } from '../utils/activitySync';
 import { onMessageDelete as lyricsOnMessageDelete } from '../lyrics/LyricsManager';
-import type { PartialMessage } from 'discord.js';
+import { handleStartupPanelSync } from './startupHandler';
+import { handlePanelRepositioning } from '../utils/panelRepositionHandler';
+import { handleVoiceStateUpdate } from '../utils/voiceStateUpdateHandler';
 
 export class EventHandler {
   constructor(private client: BotClient) {}
 
   /**
    * Registra los listeners principales de eventos de Discord para el bot.
-   * - 'clientReady': Inicialización y reposición de paneles al conectar.
+   * - 'ready': Inicialización y reposición de paneles al conectar.
    * - 'messageCreate': Manejo de mensajes para paneles, comandos y anuncios de música.
    * - 'interactionCreate': Manejo de slash commands, botones y modales.
+   * - 'messageDelete': Manejo de eliminación de mensajes (especialmente letras).
+   * - 'voiceStateUpdate': Manejo de cambios en el estado de voz.
    * Este método es fundamental para que el bot reaccione a la actividad en Discord.
    */
   public setupEventHandlers(): void {
-    this.client.once('clientReady', this.onReady.bind(this));
+    this.client.once('ready', this.onReady.bind(this));
     this.client.on('messageCreate', this.onMessageCreate.bind(this));
     this.client.on('interactionCreate', this.onInteractionCreate.bind(this));
     this.client.on('messageDelete', this.onMessageDelete.bind(this));
+    this.client.on('voiceStateUpdate', this.onVoiceStateUpdate.bind(this));
   }
 
   /**
@@ -60,173 +52,54 @@ export class EventHandler {
     printLogo();
     printStartupInfo(this.client);
     logServerInfo(this.client);
-
-    // Panel auto-reposición multi-servidor al iniciar
-    const dbDir = path.resolve(__dirname, '../../db');
-    if (!fs.existsSync(dbDir)) return;
-
-    let foundNowPlaying = false;
-    let foundSongText = '';
-    const files = fs
-      .readdirSync(dbDir)
-      .filter((f) => f.startsWith('bot-state-') && f.endsWith('.json'));
-    for (const file of files) {
-      try {
-        const state: BotPanelState = JSON.parse(
-          fs.readFileSync(path.join(dbDir, file), 'utf8')
-        );
-        if (!state.guildId || !state.channelId) continue;
-        const guild = await this.client.guilds
-          .fetch(state.guildId)
-          .catch(() => null);
-        if (!guild) continue;
-        const channel = await this.client.channels
-          .fetch(state.channelId)
-          .catch(() => null);
-        if (
-          channel &&
-          channel.isTextBased() &&
-          'send' in channel &&
-          typeof channel.send === 'function' &&
-          channel.type === 0 // GuildText
-        ) {
-          await cleanupAllHelpPanels(
-            this.client.user!.id,
-            channel as TextChannel
-          );
-          // Usa repositionPanel para que el footer sea dinámico según autodetect
-          const newPanel = await repositionPanel(
-            channel as TextChannel,
-            state.guildId,
-            state.channelId
-          );
-          // Actualiza el estado con el nuevo mensaje
-          writePanelState({
-            guildId: state.guildId,
-            channelId: state.channelId,
-            lastHelpMessageId: newPanel.id,
-          });
-          // --- Sincroniza el estado del panel con el estado real del canal ---
-          await syncPanelLyricsButton(channel as TextChannel, state.guildId);
-
-          // --- NUEVO: Usa solo el mensaje real de Jockie Music para setActivity ---
-          const nowPlaying = await findJockieNowPlayingSong(
-            channel as TextChannel
-          );
-          if (nowPlaying && nowPlaying.song) {
-            const artistText = nowPlaying.artists.length > 0 ? ` by ${nowPlaying.artists.join(', ')}` : '';
-            setBotActivity(
-              `▶️ - ${nowPlaying.song}${artistText}`,
-              2
-            );
-            foundNowPlaying = true;
-            foundSongText = `▶️ - ${nowPlaying.song}${artistText}`;
-          }
-          // --- FIN NUEVO ---
-          console.log(
-            `[Panel] Panel de comandos repuesto automáticamente en ${guild.name} (${guild.id}).`
-          );
-        }
-      } catch (err) {
-        console.warn(
-          '[Panel] No se pudo reponer el panel automáticamente:',
-          err
-        );
-      }
-    }
-    // Si no se encontró ninguna canción activa, setea el estado por defecto (WATCHING)
-    if (!foundNowPlaying) {
-      setBotActivity('🤖 Bot de ayuda de comandos de música', 3);
-      console.log('[MusicToEasy][DEBUG] Estado de actividad inicial: WATCHING');
-    } else {
-      console.log(
-        `[MusicToEasy][DEBUG] Estado de actividad inicial: LISTENING (${foundSongText})`
-      );
-    }
+    await handleStartupPanelSync(this.client);
   }
 
+  /**
+   * Se ejecuta con cada mensaje. Delega a los manejadores correspondientes.
+   */
   private async onMessageCreate(message: Message): Promise<void> {
-    await handleJockieMusicAnnouncement(message);
+    // No procesar mensajes de otros bots para evitar bucles, excepto los de Jockie.
+    if (
+      message.author.bot &&
+      !process.env.JOCKIE_MUSIC_IDS?.includes(message.author.id)
+    ) {
+      return;
+    }
 
-    // Extrae la lógica de eventos relevantes de música
+    const handledMusicAnnouncement = await handleJockieMusicAnnouncement(
+      message
+    );
     await handleMusicPanelEvents(message);
 
-    // 3. Lógica de reposición de panel para comandos de usuario y otros eventos.
-    if (!message.guild) return;
-    const state = readPanelState(message.guild.id);
-    if (!state?.channelId) return;
-    if (message.author.id === this.client.user?.id) return;
-    if (message.channelId !== state.channelId) return;
-
-    if (!this.shouldRepositionPanel(message)) return;
-
-    try {
-      const channel = message.channel as TextChannel;
-      await this.delay(500);
-
-      // Limpia SOLO si el mensaje anterior existe y es diferente al actual
-      if (state.lastHelpMessageId) {
-        try {
-          const lastMessage = await channel.messages.fetch(
-            state.lastHelpMessageId
-          );
-          if (lastMessage) {
-            await lastMessage.delete();
-          }
-        } catch {
-          // El mensaje puede ya no existir, ignorar
-        }
-      }
-
-      // Antes de crear el nuevo panel, verifica que no haya otro panel del bot en los últimos 5 mensajes
-      const recentMessages = await channel.messages.fetch({ limit: 5 });
-      const alreadyPanel = recentMessages.find(
-        (msg) =>
-          msg.author.id === this.client.user?.id &&
-          msg.embeds.length > 0 &&
-          msg.embeds[0].title?.includes('Comandos de Música')
-      );
-      if (alreadyPanel) {
-        // Ya hay un panel, no crear otro
-        return;
-      }
-
-      // Usa repositionPanel para que el footer sea dinámico según autodetect
-      const newHelpMessage = await repositionPanel(
-        channel,
-        message.guild.id,
-        state.channelId
-      );
-      writePanelState({
-        guildId: message.guild.id,
-        channelId: state.channelId,
-        lastHelpMessageId: newHelpMessage.id,
-      });
-      logPanelReposition(message, channel);
-    } catch (error) {
-      console.error('[Monitor] Error al reposicionar panel de ayuda:', error);
+    // Solo reposicionar el panel si no se manejó un anuncio de música (inicio/fin/refresco)
+    if (!handledMusicAnnouncement) {
+      await handlePanelRepositioning(this.client, message);
     }
   }
 
+  /**
+   * Se ejecuta cuando se borra un mensaje. Delega al manejador de letras.
+   */
   private async onMessageDelete(
     message: Message | PartialMessage
   ): Promise<void> {
     await lyricsOnMessageDelete(message, this.client.user?.id ?? '');
   }
 
-  private shouldRepositionPanel(message: Message): boolean {
-    if (message.author.bot) return true;
-    const content = message.content.toLowerCase().trim();
-    const hasPrefix = MUSIC_BOT_PREFIXES.some((prefix) =>
-      content.startsWith(prefix)
-    );
-    if (hasPrefix) {
-      const commandPart = content.split(' ')[0].substring(1);
-      return COMMON_MUSIC_COMMANDS.includes(commandPart);
-    }
-    return false;
+  /**
+   * Se ejecuta con cada cambio de estado de voz. Delega al manejador correspondiente.
+   */
+  private async onVoiceStateUpdate(
+    oldState: VoiceState,
+    newState: VoiceState
+  ): Promise<void> {
+    await handleVoiceStateUpdate(oldState, newState);
   }
 
+  /**
+   * Se ejecuta con cada interacción. Delega al manejador correspondiente según el tipo.
+   */
   private async onInteractionCreate(interaction: Interaction): Promise<void> {
     if (interaction.isCommand()) {
       await handleCommand(this.client, interaction as CommandInteraction);
@@ -235,9 +108,5 @@ export class EventHandler {
     } else if (interaction.isModalSubmit()) {
       await handleModal(this.client, interaction as ModalSubmitInteraction);
     }
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

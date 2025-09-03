@@ -2,6 +2,11 @@ import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { CommandLoader } from './CommandLoader';
 import { InteractionLoader } from './InteractionLoader';
 import { EventHandler } from './EventHandler';
+import { Command } from '../types/Command';
+import {
+  ButtonInteractionHandler,
+  ModalSubmitHandler,
+} from '../types/Interaction';
 
 /**
  * Clase principal del bot "Music to Easy".
@@ -10,11 +15,13 @@ import { EventHandler } from './EventHandler';
  */
 export class BotClient extends Client {
   // Colección de comandos slash (por nombre)
-  public commands: Collection<string, any> = new Collection();
+  public commands: Collection<string, Command> = new Collection();
   // Colección de manejadores de botones (por customId)
-  public buttonInteractions: Collection<string, any> = new Collection();
+  public buttonInteractions: Collection<string, ButtonInteractionHandler> =
+    new Collection();
   // Colección de manejadores de modales (por customId)
-  public modalInteractions: Collection<string, any> = new Collection();
+  public modalInteractions: Collection<string, ModalSubmitHandler> =
+    new Collection();
   // Estado de actividad actual del bot (2 = LISTENING, 3 = WATCHING, etc.)
   public currentActivityType: number | null = null;
 
@@ -28,6 +35,7 @@ export class BotClient extends Client {
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates,
       ],
     });
 

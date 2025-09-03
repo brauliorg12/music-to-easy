@@ -23,13 +23,13 @@
     "noUnusedParameters": false,
     "exactOptionalPropertyTypes": false,
     "typeRoots": [
-      "./types",
       "./node_modules/@types"
-    ]
+    ],
+    "noEmit": false
   },
   "include": [
     "src/**/*",
-    "types/**/*"
+    "src/types/**/*"
   ],
   "exclude": [
     "node_modules",

@@ -1,5 +1,4 @@
 import { Message } from 'discord.js';
-import { COMMON_MUSIC_BOTS } from './constants';
 
 /**
  * Enum que representa el estado de la música detectado en un mensaje de bot de música.
@@ -15,6 +14,13 @@ export enum JockieMusicStatus {
   Unknown,
 }
 
+function getJockieBotIds(): string[] {
+  return (process.env.JOCKIE_MUSIC_IDS || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
 /**
  * Analiza el contenido de un mensaje de un bot de música y determina el estado actual de la reproducción.
  * @param message Mensaje de Discord a analizar.
@@ -23,7 +29,8 @@ export enum JockieMusicStatus {
 export function detectJockieMusicStatus(
   message: Message
 ): JockieMusicStatus | null {
-  if (!COMMON_MUSIC_BOTS.includes(message.author.id)) return null;
+  const musicBotIds = getJockieBotIds();
+  if (!musicBotIds.includes(message.author.id)) return null;
 
   // Analiza el contenido del mensaje y también el primer embed (si existe)
   let content = message.content.toLowerCase();

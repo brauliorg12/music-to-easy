@@ -1,5 +1,11 @@
 import { Message } from 'discord.js';
-import { COMMON_MUSIC_BOTS } from './constants';
+
+function getJockieBotIds(): string[] {
+  return (process.env.JOCKIE_MUSIC_IDS || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
 
 /**
  * Determina si un mensaje proviene de un bot de música relevante y contiene un embed válido,
@@ -9,9 +15,10 @@ import { COMMON_MUSIC_BOTS } from './constants';
  * @returns true si el mensaje es relevante para la lógica de bots de música, false en caso contrario.
  */
 export function isRelevantMusicBotMessage(message: Message): boolean {
+  const musicBotIds = getJockieBotIds();
   return (
     message.author.bot &&
-    COMMON_MUSIC_BOTS.includes(message.author.id) &&
+    musicBotIds.includes(message.author.id) &&
     message.embeds.length > 0 &&
     !(
       message.author.id === message.client.user?.id &&
