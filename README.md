@@ -58,13 +58,13 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
   Cuando se detecta una canción en reproducción, el bot puede mostrar un panel especial con la letra de la canción (si está disponible).
 
   - El panel de letras se mantiene sincronizado con la canción actual y se elimina automáticamente cuando cambia la canción o se detiene la reproducción.
-  - Si el usuario pulsa el botón "Cerrar letras", el panel de letras se elimina inmediatamente del canal.
+  - Si el usuario pulsa el botón "Cerrar", el panel de letras se elimina inmediatamente del canal.
 
 - **Sincronización de letras:**  
   El sistema de letras está integrado con el panel principal y el estado del bot, mostrando la letra correcta en tiempo real y limpiando mensajes obsoletos para evitar duplicados.
 
 - **Botón "Cerrar letras":**  
-  Cada panel de letras incluye un botón "❌ Cerrar letras" para que los usuarios puedan eliminar el mensaje de letras cuando lo deseen.
+  Cada panel de letras incluye un botón "❌ Cerrar" para que los usuarios puedan eliminar el mensaje de letras cuando lo deseen.
 
 - **Limpieza automática:**  
   Los mensajes de letras se eliminan automáticamente cuando la canción termina, cambia o el usuario pulsa el botón de cerrar, manteniendo el canal limpio y sincronizado.
@@ -121,16 +121,17 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 
 ## 🏗️ Estructura del Proyecto
 
-- `src/commands/`: Comandos slash (`/music`, `/disable`)
-- `src/core/`: Clases principales (BotClient, EventHandler)
-- `src/handlers/`: Handlers base
-- `src/interactions/`: Handlers de botones
-- `src/utils/`: Utilidades y helpers
-- `src/utils/jockieMusicAnnouncer.ts`: Lógica para detectar eventos de bots de música y mostrar el embed "Ahora suena", actualizar el panel y el estado del bot.
-- `src/utils/musicBotEventHelpers.ts`: Helpers para filtrar mensajes relevantes de bots de música y evitar duplicados.
-- `src/utils/jockiePanelActions.ts`: Acciones para enviar/eliminar paneles y mensajes especiales como "Ahora suena".
-- `src/constants/botConstants.ts`: Constantes para el estado/activity del bot y emojis usados en el panel y mensajes.
+- `src/commands/`: Comandos slash (`/music`, `/disable`, `/autodetect`, `/disableautodetect`)
+- `src/constants/`: Constantes generales y de bot
+- `src/core/`: Clases principales (BotClient, EventHandler, CommandLoader)
+- `src/errors/`: Manejo de errores
+- `src/interactions/`: Handlers de botones y modales
+- `src/lyrics/`: Lógica de letras de canciones
+- `src/services/`: Servicios externos/internos
+- `src/types/`: Tipos TypeScript
+- `src/utils/`: Utilidades y helpers (incluye lógica de panel, sugerencias, estado, etc.)
 - `src/index.ts`: Punto de entrada principal
+- `db/`: Archivos de estado y configuración persistente por canal/servidor
 
 ---
 

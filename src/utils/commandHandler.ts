@@ -20,6 +20,10 @@ export async function handleCommand(
     console.warn(
       `[Advertencia] Comando desconocido: ${interaction.commandName}`
     );
+    await interaction.reply({
+      content: '❌ Este comando no está disponible en Music to Easy.',
+      ephemeral: true,
+    });
     return;
   }
   try {

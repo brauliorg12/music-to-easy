@@ -51,6 +51,8 @@ export async function execute(interaction: ButtonInteraction): Promise<void> {
           'ℹ️ **Comandos propios**',
           '• `/music` - Activa el panel de control de música en el canal actual.',
           '• `/disable` - Desactiva y elimina el panel de música del canal actual.',
+          '• `/autodetect` - Activa la sugerencia automática de comandos por links o nombres de canciones en el canal actual (requiere panel activo).',
+          '• `/disableautodetect` - Desactiva la sugerencia automática en el canal actual y elimina todas las sugerencias activas.',
         ].join('\n')
       )
       .setFooter({
