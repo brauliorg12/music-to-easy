@@ -54,6 +54,20 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
   - Esto permite a los usuarios saber si hay música sonando y cuál, directamente desde la lista de miembros de Discord.
 - Limpieza automática de mensajes "Ahora suena" y paneles para evitar duplicados o mensajes obsoletos.
 - Integración inteligente con bots de música populares: detecta eventos relevantes y actualiza el panel y los mensajes en consecuencia.
+- **Panel de letras:**  
+  Cuando se detecta una canción en reproducción, el bot puede mostrar un panel especial con la letra de la canción (si está disponible).
+
+  - El panel de letras se mantiene sincronizado con la canción actual y se elimina automáticamente cuando cambia la canción o se detiene la reproducción.
+  - Si el usuario pulsa el botón "Cerrar letras", el panel de letras se elimina inmediatamente del canal.
+
+- **Sincronización de letras:**  
+  El sistema de letras está integrado con el panel principal y el estado del bot, mostrando la letra correcta en tiempo real y limpiando mensajes obsoletos para evitar duplicados.
+
+- **Botón "Cerrar letras":**  
+  Cada panel de letras incluye un botón "❌ Cerrar letras" para que los usuarios puedan eliminar el mensaje de letras cuando lo deseen.
+
+- **Limpieza automática:**  
+  Los mensajes de letras se eliminan automáticamente cuando la canción termina, cambia o el usuario pulsa el botón de cerrar, manteniendo el canal limpio y sincronizado.
 
 ---
 
@@ -175,17 +189,17 @@ El bot muestra logs claros en consola sobre su estado, canales configurados y ac
 
 1. **Recepción de mensajes de bots de música:**  
    El bot escucha todos los mensajes en los canales configurados. Cuando detecta un mensaje relevante de un bot de música (por ejemplo, Jockie Music), analiza el contenido y los embeds para identificar eventos como "started playing" o fin de la cola.
-2. **Actualización del embed "Ahora suena":**  
+2. **Actualización del embed "Ahora suena":**
    - Si comienza una nueva canción, se elimina el mensaje anterior de "Ahora suena" (si existe) y se envía uno nuevo con la información de la canción.
    - Si la reproducción termina o el bot de música se va, se elimina el mensaje "Ahora suena" y se actualiza el panel.
-3. **Actualización del estado del bot (Activity):**  
+3. **Actualización del estado del bot (Activity):**
    - Al detectar una canción en reproducción, el bot cambia su estado a "▶️ - <canción> by <artista>" (Listening).
    - Cuando no hay música, vuelve al estado por defecto (Watching).
    - Esto se gestiona centralizadamente para evitar inconsistencias.
-4. **Reposicionamiento y limpieza del panel:**  
+4. **Reposicionamiento y limpieza del panel:**
    - El panel de comandos se mantiene siempre visible. Si otros mensajes lo desplazan, el bot lo elimina y lo vuelve a enviar automáticamente.
    - Se evita la duplicación de paneles y mensajes especiales mediante lógica de control y limpieza inteligente.
-5. **Sincronización multi-servidor:**  
+5. **Sincronización multi-servidor:**
    - Toda la lógica es multi-servidor y multi-canal, con persistencia de estado por servidor/canal.
    - Al reiniciar el bot, se reponen los paneles y se limpian mensajes efímeros antiguos.
 
