@@ -88,11 +88,8 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 - **Sincronización de letras:**  
   El sistema de letras está integrado con el panel principal y el estado del bot, mostrando la letra correcta en tiempo real y limpiando mensajes obsoletos para evitar duplicados.
 
-- **Botón "Cerrar letras":**  
-  Cada panel de letras incluye un botón "❌ Cerrar" para que los usuarios puedan eliminar el mensaje de letras cuando lo deseen.
-
 - **Limpieza automática:**  
-  Los mensajes de letras se eliminan automáticamente cuando la canción termina, cambia o el usuario pulsa el botón de cerrar, manteniendo el canal limpio y sincronizado.
+  Los mensajes de letras se eliminan automáticamente cuando la canción termina, cambia o el usuario pulsa el botón "❌ Cerrar", manteniendo el canal limpio y sincronizado.
 
 ---
 
