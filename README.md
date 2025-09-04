@@ -10,7 +10,23 @@ Bot de Discord que facilita el uso de comandos de música de otros bots mediante
 
 ## 🚀 ¿Qué es Music to Easy?
 
-Music to Easy crea un **panel de control** con comandos en el canal que elijas. Al pulsar un botón, el bot te muestra el comando listo para copiar y pegar en el chat, facilitando el uso de bots de música populares (Mee6, Jockie, FredBoat, etc).
+Music to Easy crea un **panel de control** con comandos en el canal que elijas.  
+Al pulsar un botón, el bot te muestra el comando listo para copiar y pegar en el chat del bot de música (principalmente Jockie Music).
+
+- El panel **NO ejecuta comandos automáticamente**, solo los muestra para que los copies y pegues tú mismo.
+- El panel se mantiene siempre visible y se reposiciona automáticamente si otros mensajes lo desplazan.
+
+---
+
+## 🤖 Compatibilidad de Bots
+
+| Bot          | Estado           |
+| ------------ | ---------------- |
+| Jockie Music | ✅ Soportado     |
+| Mee6         | 🚧 En desarrollo |
+| FredBoat     | 🚧 En desarrollo |
+
+> Actualmente Music to Easy está optimizado para Jockie Music. El soporte para otros bots está en desarrollo.
 
 ---
 
@@ -31,6 +47,13 @@ Music to Easy crea un **panel de control** con comandos en el canal que elijas. 
 
 El panel muestra los comandos más comunes (Play, Pause, Stop, Next, Listado) listos para copiar y pegar.  
 Solo tienes que hacer click en el bloque de código del comando y pegarlo en el chat del bot de música que uses.
+
+## ✨ Sugerencia automática de comandos
+
+- Si envías un link de YouTube/Spotify o escribes el nombre de una canción en el chat, el bot te sugiere automáticamente el comando `m!p` listo para copiar y pegar.
+- Solo tú verás la sugerencia y podrás cerrarla con el botón "Cerrar".
+- Las sugerencias se autodestruyen automáticamente a los 60 segundos si no las cierras.
+- Si un administrador ejecuta `/disableautodetect`, todas las sugerencias activas del canal se eliminan inmediatamente.
 
 ---
 
@@ -54,11 +77,13 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
   - Esto permite a los usuarios saber si hay música sonando y cuál, directamente desde la lista de miembros de Discord.
 - Limpieza automática de mensajes "Ahora suena" y paneles para evitar duplicados o mensajes obsoletos.
 - Integración inteligente con bots de música populares: detecta eventos relevantes y actualiza el panel y los mensajes en consecuencia.
-- **Panel de letras:**  
-  Cuando se detecta una canción en reproducción, el bot puede mostrar un panel especial con la letra de la canción (si está disponible).
 
-  - El panel de letras se mantiene sincronizado con la canción actual y se elimina automáticamente cuando cambia la canción o se detiene la reproducción.
-  - Si el usuario pulsa el botón "Cerrar", el panel de letras se elimina inmediatamente del canal.
+## 🎤 Panel "Letra" (solo Jockie Music)
+
+- Si hay una canción sonando (detectada por Jockie Music), el panel habilita el botón 🎤 **Letra**.
+- Al pulsar el botón, el bot busca la letra y la publica en el canal.
+- Puedes cerrar todos los mensajes de la letra usando el botón "❌ Cerrar".
+- El panel de letras se elimina automáticamente al cambiar la canción, detenerse o al pulsar "Cerrar".
 
 - **Sincronización de letras:**  
   El sistema de letras está integrado con el panel principal y el estado del bot, mostrando la letra correcta en tiempo real y limpiando mensajes obsoletos para evitar duplicados.
