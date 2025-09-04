@@ -23,8 +23,7 @@ export async function findLyrics(
       // If it's a LyricsNotFoundError, continue to the next artist
       // or if it's another unexpected error, log and continue
       console.warn(
-        `[findLyrics] Error fetching lyrics for ${artist} - ${title}:`,
-        err
+        `[findLyrics] No se encontró letra para '${title}' con el artista '${artist}'.`
       );
     }
   }
@@ -37,8 +36,9 @@ export async function findLyrics(
         throw err;
       }
       console.warn(
-        `[findLyrics] Error fetching lyrics for joined artists - ${title}:`,
-        err
+        `[findLyrics] Letra no encontrada: '${title}' - '${artists.join(
+          ', '
+        )}'.`
       );
     }
   }

@@ -184,12 +184,21 @@ export async function handleLyricsButton(interaction: ButtonInteraction) {
 
   // Envía los mensajes y registra el grupo
   const groupId = Date.now().toString();
+
+  // Obtiene el nombre visible del usuario (nickname si existe, si no username)
+  const displayName =
+    interaction.member &&
+    'nickname' in interaction.member &&
+    interaction.member.nickname
+      ? interaction.member.nickname
+      : interaction.user.username;
+
   const msgIds = await sendLyricsMessages(
     channel,
     title,
     artists,
     lyrics,
-    interaction.user.tag,
+    displayName,
     interaction.user.displayAvatarURL(),
     groupId
   );

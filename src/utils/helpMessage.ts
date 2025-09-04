@@ -85,7 +85,7 @@ export function createHelpMessage(
       .setCustomId(CUSTOM_IDS.LYRICS)
       .setLabel('Letra')
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji('📄')
+      .setEmoji('🎤')
       .setDisabled(!lyricsEnabled),
     // Botón de Ayuda
     new ButtonBuilder()
