@@ -165,9 +165,66 @@ Puedes cambiar los comandos generados por los botones editando el archivo de con
 
 ## 🐳 Docker & CI/CD
 
-- Imágenes pre-construidas disponibles en GitHub Container Registry.
-- Build multi-arquitectura.
-- Pipeline automática con tests, build y publicación.
+La imagen se construye y publica automáticamente en **GitHub Container Registry (GHCR)** con cada push a `main`:
+
+```
+ghcr.io/brauliorg12/music-to-easy:latest
+```
+
+- Build multi-arquitectura (`linux/amd64`, `linux/arm64`).
+- Pipeline automática con build, publicación y escaneo de seguridad (Trivy).
+
+### Variables de entorno
+
+| Variable           | Obligatoria | Uso                                         |
+| ------------------ | ----------- | ------------------------------------------- |
+| `DISCORD_TOKEN`    | Sí          | Token del bot.                              |
+| `CLIENT_ID`        | Sí          | Application ID (registrar comandos).        |
+| `GUILD_ID`         | No          | Registrar comandos solo en un servidor.     |
+| `JOCKIE_MUSIC_IDS` | Recomendado | IDs de bots Jockie Music a detectar (coma). |
+| `YOUTUBE_REGEX`    | No          | Regex de links de YouTube.                  |
+| `SPOTIFY_REGEX`    | No          | Regex de links de Spotify.                  |
+
+### Datos persistentes
+
+El bot guarda el estado en `/app/db` (`bot-state-<guildId>.json` y
+`autodetect-<guildId>-<channelId>.json`). Montá una carpeta/volumen en `/app/db`.
+
+> La imagen corre como usuario **non-root (uid 1001)**: la carpeta montada en
+> `/app/db` debe ser escribible por 1001 (`chown -R 1001:1001`).
+
+### Ejemplo con docker-compose
+
+```yaml
+services:
+  music-to-easy:
+    image: ghcr.io/brauliorg12/music-to-easy:latest
+    container_name: music-to-easy
+    restart: unless-stopped
+    init: true
+    environment:
+      TZ: America/Argentina/Buenos_Aires
+      NODE_ENV: production
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      CLIENT_ID: ${CLIENT_ID}
+      JOCKIE_MUSIC_IDS: ${JOCKIE_MUSIC_IDS}
+    volumes:
+      - ./db:/app/db
+```
+
+Luego registrá los comandos (una vez, o cuando cambien):
+
+```
+docker exec -it music-to-easy node dist/deploy-commands.js
+```
+
+### Deploy en Portainer
+
+1. **Stacks → Add stack** → nombre `music-to-easy`.
+2. Pegar el yml en **Web editor**.
+3. Cargar las variables `DISCORD_TOKEN`, `CLIENT_ID` y `JOCKIE_MUSIC_IDS`.
+4. **Deploy the stack** y, una vez arriba, registrar los comandos con
+   `node dist/deploy-commands.js` dentro del contenedor.
 
 ---
 
