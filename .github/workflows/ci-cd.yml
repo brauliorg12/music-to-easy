@@ -1,17 +1,19 @@
-name: CI/CD Pipeline
+name: 🎵 Music to Easy CI/CD
 
+# PR a main: solo valida (lint, tests y build). No versiona ni publica.
+# Push/merge a main: versiona, publica en GHCR, crea el Release y escanea.
+# Este repo no automatiza deploy a ningun servidor.
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: music-to-easy-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -19,249 +21,225 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Job 1: Lint and Test
+  # ---------------------------------------------------------------------------
+  # 1. Validacion: corre en PR y en push a main.
+  # ---------------------------------------------------------------------------
   test:
+    name: 🧪 Validacion
     runs-on: ubuntu-latest
-    name: 🧪 Test & Lint
     timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
 
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24.22.1'
-        cache: 'npm'
+      - name: 🟢 Node 24.22.1
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.22.1"
+          cache: "npm"
 
-    - name: 📦 Install dependencies
-      run: npm ci
+      - name: 📦 Instalar dependencias
+        run: npm ci --no-audit --no-fund
 
-    - name: 🔍 Run linter
-      run: npm run lint || echo "No linter configured"
+      - name: 🔍 Lint
+        run: npm run lint
 
-    - name: 🧪 Run tests
-      run: npm run test || echo "No tests configured"
+      - name: 🧪 Tests
+        run: npm run test
 
-    - name: 🏗️ Build application
-      run: npm run build
+      - name: 🏗️ Build
+        run: npm run build
 
-  # Job 2: Version, tag and push
+  # ---------------------------------------------------------------------------
+  # 2. Versionado: solo push a main, nunca en PR.
+  # ---------------------------------------------------------------------------
   release:
+    name: 🏷️ Version & Tag
     needs: test
-    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')
+    if: >
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
-    name: 📦 Version & Tag
     timeout-minutes: 15
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.release.outputs.version }}
       sha: ${{ steps.release.outputs.sha }}
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: 📥 Checkout con historial
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24.22.1'
-        cache: 'npm'
+      - name: 🟢 Node 24.22.1
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.22.1"
+          cache: "npm"
 
-    - name: 📦 Install dependencies
-      run: npm ci
+      - name: 📦 Instalar dependencias
+        run: npm ci --no-audit --no-fund
 
-    - name: 🔧 Configure Git
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: 🔧 Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: 📦 Version, tag and push
-      id: release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git fetch origin main
-        git rebase origin/main
-        if git describe --tags --exact-match HEAD > /dev/null 2>&1; then
-          echo "HEAD ya versionado; se omite el bump."
-        else
-          npm run release
-          git push --follow-tags origin main
-        fi
-        VERSION=$(node -p "require('./package.json').version")
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: 🏷️ Versionar, taggear y pushear
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git fetch origin main
+          git rebase origin/main
+          if git describe --tags --exact-match HEAD > /dev/null 2>&1; then
+            echo "HEAD ya versionado; se omite el bump."
+          else
+            npm run release
+            git push --follow-tags origin main
+          fi
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  # Job 3: Build and push Docker image
+  # ---------------------------------------------------------------------------
+  # 3. Imagen: solo push a main, usando el commit versionado.
+  # ---------------------------------------------------------------------------
   build-and-push:
+    name: 🐳 Build & Push GHCR
     needs: release
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    name: 🐳 Build & Push Docker Image
     timeout-minutes: 45
-    outputs:
-      image-digest: ${{ steps.build.outputs.digest }}
-      image-tags: ${{ steps.meta.outputs.tags }}
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-    - name: 📥 Checkout release commit
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ needs.release.outputs.sha }}
+      - name: 📥 Checkout del commit versionado
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.sha }}
 
-    - name: 🐳 Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: 🧰 QEMU
+        uses: docker/setup-qemu-action@v3
 
-    - name: 🔑 Login to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🐳 Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: 🏷️ Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=raw,value=latest
-          type=raw,value=v${{ needs.release.outputs.version }}
-          type=raw,value=sha-${{ needs.release.outputs.sha }}
-        labels: |
-          org.opencontainers.image.title=Music to Easy
-          org.opencontainers.image.description=Discord bot that makes music commands easy with buttons
-          org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          org.opencontainers.image.revision=${{ needs.release.outputs.sha }}
-          org.opencontainers.image.version=${{ needs.release.outputs.version }}
+      - name: 🔑 Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 🏗️ Build and push Docker image
-      id: build
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        platforms: linux/amd64,linux/arm64
-        provenance: false
+      - name: 🏷️ Metadata de imagen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=v${{ needs.release.outputs.version }}
+            type=raw,value=sha-${{ needs.release.outputs.sha }}
+          labels: |
+            org.opencontainers.image.title=Music to Easy
+            org.opencontainers.image.description=Discord bot that makes music commands easy with buttons
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.release.outputs.sha }}
+            org.opencontainers.image.version=${{ needs.release.outputs.version }}
 
-    - name: 📋 Output image info
-      run: |
-        echo "Built and pushed the following tags:"
-        echo "${{ steps.meta.outputs.tags }}"
-        echo "Image digest: ${{ steps.build.outputs.digest }}"
+      - name: 🏗️ Build & Push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          provenance: false
 
-  # Job 4: GitHub Release
+      - name: 📋 Resumen de imagen
+        run: |
+          echo "Tags publicados:"
+          echo "${{ steps.meta.outputs.tags }}"
+          echo "Digest: ${{ steps.build.outputs.digest }}"
+
+  # ---------------------------------------------------------------------------
+  # 4. GitHub Release: solo push a main.
+  # ---------------------------------------------------------------------------
   github-release:
+    name: 📦 GitHub Release
     needs: [release, build-and-push]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    name: 🏷️ GitHub Release
     timeout-minutes: 10
+    permissions:
+      contents: write
 
     steps:
-    - name: 📦 Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ needs.release.outputs.version }}
-        name: Music to Easy v${{ needs.release.outputs.version }}
-        generate_release_notes: true
-        draft: false
-        prerelease: false
+      - name: 📦 Crear GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.release.outputs.version }}
+          name: Music to Easy v${{ needs.release.outputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
 
-  # Job 5: Security scan
+  # ---------------------------------------------------------------------------
+  # 5. Escaneo de seguridad: solo push a main.
+  # ---------------------------------------------------------------------------
   security-scan:
-    needs: [release, build-and-push]
-    runs-on: ubuntu-latest
     name: 🔒 Security Scan
+    needs: [release, build-and-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
       packages: read
       security-events: write
-    if: github.event_name == 'push'
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 🔑 Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 🔑 Login to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🔍 Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ needs.release.outputs.version }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
 
-    - name: 🔍 Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ needs.release.outputs.version }}
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'CRITICAL,HIGH'
-        exit-code: '0'  # Don't fail on vulnerabilities
+      - name: 📊 Subir SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        with:
+          sarif_file: "trivy-results.sarif"
 
-    - name: 📊 Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-
-    - name: 📋 Upload scan results as artifact
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: trivy-results
-        path: trivy-results.sarif
-        retention-days: 30
-
-  # Job 6: Deploy
-  deploy:
-    if: github.event_name == 'push'
-    needs: [release, build-and-push]
-    runs-on: ubuntu-latest
-    name: 🚀 Deploy
-    timeout-minutes: 10
-    environment: production
-
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: 🔑 Login to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: 🚀 Deploy to production
-      run: |
-        echo "🎉 Deploying to production..."
-        echo "Version: ${{ needs.release.outputs.version }}"
-        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-        echo "Available tags from build:"
-        echo "${{ needs.build-and-push.outputs.image-tags }}"
-
-        # Example deployment commands (customize for your needs):
-        # - Deploy to cloud provider
-        # - Update docker-compose on server
-        # - Trigger deployment webhook
-        # - Update Kubernetes manifests
-
-        # For now, just verify the image exists
-        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-
-    - name: 📢 Notify deployment
-      run: |
-        echo "✅ Deployment completed successfully!"
-        echo "Version: ${{ needs.release.outputs.version }}"
-        echo "Commit: ${{ needs.release.outputs.sha }}"
-        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ needs.release.outputs.version }}"
+      - name: 📋 Subir artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-results-${{ github.run_number }}
+          path: trivy-results.sarif
+          retention-days: 30
+          if-no-files-found: warn
