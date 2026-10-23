@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.11.1](https://github.com/brauliorg12/music-to-easy/compare/v1.11.0...v1.11.1) (2026-10-23)
+
 ## [1.11.0](https://github.com/brauliorg12/music-to-easy/compare/v1.10.0...v1.11.0) (2026-10-23)
 
 ### Features
