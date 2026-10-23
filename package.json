@@ -43,7 +43,7 @@
   },
   "homepage": "https://github.com/brauliorg12/music-to-easy#readme",
   "engines": {
-    "node": ">=24.22.1",
+    "node": ">=24.22.1 <25",
     "npm": ">=10"
   },
   "dependencies": {

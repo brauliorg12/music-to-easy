@@ -95,6 +95,9 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 
 ## 🛠️ Instalación
 
+> Requiere **Node.js 24.22.1** (fijado en `.nvmrc`, `engines` y el Dockerfile).
+> No usar Node 16, 18 ni 20, y no saltar a Node 26.
+
 ### Opción 1: Docker (Recomendado) 🐳
 
 1. Clona el repositorio y configura el archivo `.env`.
@@ -103,7 +106,7 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 ### Opción 2: Instalación Manual
 
 1. Clona el repositorio.
-2. Instala dependencias con `npm install`.
+2. Instala dependencias con `npm ci` (Node 24.22.1, ver `.nvmrc`).
 3. Copia `.env.example` a `.env` y edítalo.
 4. **Invita el bot a tu servidor usando este enlace personalizado:**  
    [Invitar Music to Easy a tu servidor](https://discord.com/oauth2/authorize?client_id=1030804069599678524&scope=bot%20applications.commands&permissions=274878221440)
@@ -172,8 +175,17 @@ ghcr.io/brauliorg12/music-to-easy:latest
 ```
 
 - Build multi-arquitectura (`linux/amd64`, `linux/arm64`).
-- Pipeline automática con build, publicación, release y escaneo de seguridad (Trivy).
-- En Pull Requests solo se valida (test, lint y build); no publica nada.
+- Pipeline automática con build, publicación, release y escaneo de seguridad
+  (Trivy).
+- **En Pull Requests solo se valida** (lint, tests y build): no versiona ni
+  publica.
+- **En push/merge a `main`** corre el flujo completo: versión, GHCR, Release y
+  security scan.
+- Este repo **no automatiza deploy a servidores** ni usa secretos de
+  infraestructura.
+
+> Los scripts `lint` y `test` son placeholders por ahora; el CI los ejecuta
+> igual y no oculta fallos cuando se implementen de verdad.
 
 ### Versionado
 
@@ -193,6 +205,9 @@ No se editan versiones ni tags a mano. Para forzar un bump local:
 npm run release:minor  # fuerza minor
 npm run release:patch  # fuerza patch
 ```
+
+> Este repo no requiere secrets de deploy. El `GITHUB_TOKEN` de Actions alcanza
+> para publicar en GHCR y crear el Release.
 
 ### Variables de entorno
 
@@ -238,13 +253,11 @@ Luego registrá los comandos (una vez, o cuando cambien):
 docker exec -it music-to-easy node dist/deploy-commands.js
 ```
 
-### Deploy en Portainer
+### Imagen publicada
 
-1. **Stacks → Add stack** → nombre `music-to-easy`.
-2. Pegar el yml en **Web editor**.
-3. Cargar las variables `DISCORD_TOKEN`, `CLIENT_ID` y `JOCKIE_MUSIC_IDS`.
-4. **Deploy the stack** y, una vez arriba, registrar los comandos con
-   `node dist/deploy-commands.js` dentro del contenedor.
+El repo no automatiza deploy a ningún servidor. La imagen queda publicada en
+GHCR y cada instalación la consume con su propio `docker-compose`, definiendo
+sus variables de entorno y su carpeta `db/`.
 
 ---
 
