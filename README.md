@@ -172,7 +172,27 @@ ghcr.io/brauliorg12/music-to-easy:latest
 ```
 
 - Build multi-arquitectura (`linux/amd64`, `linux/arm64`).
-- Pipeline automática con build, publicación y escaneo de seguridad (Trivy).
+- Pipeline automática con build, publicación, release y escaneo de seguridad (Trivy).
+- En Pull Requests solo se valida (test, lint y build); no publica nada.
+
+### Versionado
+
+En cada push/merge a `main`, el pipeline versiona automáticamente con
+[commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version)
+(equivalente mantenido de `standard-version`):
+
+1. Calcula la versión según los Conventional Commits (`feat` → minor, `fix` → patch).
+2. Actualiza `package.json`, `package-lock.json` y `CHANGELOG.md`.
+3. Crea el commit `chore(release): X.Y.Z [skip ci]` y el tag `vX.Y.Z`.
+4. Publica en GHCR `latest`, `vX.Y.Z` y `sha-<commit>`.
+5. Crea el GitHub Release.
+
+No se editan versiones ni tags a mano. Para forzar un bump local:
+
+```bash
+npm run release:minor  # fuerza minor
+npm run release:patch  # fuerza patch
+```
 
 ### Variables de entorno
 

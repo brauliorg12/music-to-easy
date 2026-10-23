@@ -1,6 +1,6 @@
 {
   "name": "music-to-easy",
-  "version": "1.0.0",
+  "version": "1.10.0",
   "description": "A Discord bot that makes music commands easy with buttons and intuitive interface",
   "main": "dist/index.js",
   "scripts": {
@@ -10,7 +10,10 @@
     "deploy": "ts-node src/deploy-commands.ts",
     "clear-commands": "ts-node src/clear-commands.ts",
     "lint": "echo 'No linter configured yet'",
-    "test": "echo 'No tests configured yet'"
+    "test": "echo 'No tests configured yet'",
+    "release": "commit-and-tag-version --message \"chore(release): %s [skip ci]\"",
+    "release:minor": "commit-and-tag-version --release-as minor --message \"chore(release): %s [skip ci]\"",
+    "release:patch": "commit-and-tag-version --release-as patch --message \"chore(release): %s [skip ci]\""
   },
   "keywords": [
     "discord",
@@ -51,6 +54,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/node-fetch": "^2.6.13",
+    "commit-and-tag-version": "^13.3.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"
