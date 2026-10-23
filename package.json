@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "start": "npm run build && node dist/index.js",
+    "start": "node dist/index.js",
     "deploy": "ts-node src/deploy-commands.ts",
     "clear-commands": "ts-node src/clear-commands.ts",
     "lint": "echo 'No linter configured yet'",
@@ -40,8 +40,8 @@
   },
   "homepage": "https://github.com/brauliorg12/music-to-easy#readme",
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=24.22.1",
+    "npm": ">=10"
   },
   "dependencies": {
     "discord.js": "^14.21.0",
