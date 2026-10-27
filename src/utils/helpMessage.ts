@@ -4,8 +4,13 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from 'discord.js';
-import { CUSTOM_IDS, MUSIC_COMMANDS } from './constants';
+import {
+  CUSTOM_IDS,
+  MUSIC_COMMANDS,
+  PANEL_EMBED_TITLE,
+} from './constants';
 import { readAutoDetectState } from './autoDetectState';
+import { getClient } from '../globalClient';
 
 /**
  * Crea el mensaje de ayuda principal del bot de música.
@@ -28,17 +33,17 @@ export function createHelpMessage(
 
   // Si lyricsEnabled no se pasa, lo deduce del estado de actividad global
   if (lyricsEnabled === undefined) {
-    const client = (globalThis as any).client;
+    const client = getClient();
     lyricsEnabled = client?.currentActivityType === 2; // 2 = LISTENING
   }
 
   // Crea el embed con los comandos de música
   const embed = new EmbedBuilder()
     .setColor(0x3498db)
-    .setTitle('🎵 Comandos de Música')
+    .setTitle(PANEL_EMBED_TITLE)
     .setDescription(
       'Haz click en el bloque de código que desees para copiar el comando y pégalo en el chat.\n' +
-        '> Usa `m!p <nombre o URL>` para reproducir una canción por nombre o desde YouTube, Spotify, etc.'
+        `> Usa \`${MUSIC_COMMANDS.PLAY.trim()} <nombre o URL>\` para reproducir una canción por nombre o desde YouTube, Spotify, etc.`
     )
     // Primera fila: Play, Pause y Stop
     .addFields(
@@ -49,7 +54,7 @@ export function createHelpMessage(
       },
       {
         name: '⏸️ Pausa',
-        value: '```\nm!pause```',
+        value: `\`\`\`\n${MUSIC_COMMANDS.PAUSE}\`\`\``,
         inline: true,
       },
       {

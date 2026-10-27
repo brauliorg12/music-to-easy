@@ -18,7 +18,11 @@ import { onMessageDelete as lyricsOnMessageDelete } from '../lyrics/LyricsManage
 import { handleStartupPanelSync } from './startupHandler';
 import { handlePanelRepositioning } from '../utils/panelRepositionHandler';
 import { handleVoiceStateUpdate } from '../utils/voiceStateUpdateHandler';
+import { isJockieBotId } from '../utils/jockieIds';
 
+/**
+ * Registra y enruta los eventos de Discord hacia los manejadores del bot.
+ */
 export class EventHandler {
   constructor(private client: BotClient) {}
 
@@ -60,10 +64,7 @@ export class EventHandler {
    */
   private async onMessageCreate(message: Message): Promise<void> {
     // No procesar mensajes de otros bots para evitar bucles, excepto los de Jockie.
-    if (
-      message.author.bot &&
-      !process.env.JOCKIE_MUSIC_IDS?.includes(message.author.id)
-    ) {
+    if (message.author.bot && !isJockieBotId(message.author.id)) {
       return;
     }
 

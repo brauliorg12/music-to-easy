@@ -40,6 +40,8 @@ Al pulsar un botón, el bot te muestra el comando listo para copiar y pegar en e
 | `/disableautodetect` | Desactiva la sugerencia automática de comandos **en el canal actual**                  | Administrador |
 
 > **Nota:** Todos los comandos afectan solo al canal donde se ejecutan, excepto `/disable` que elimina el panel del canal configurado.
+>
+> **Ayuda adaptativa:** La tarjeta de Ayuda muestra solo las acciones disponibles para cada usuario. La sección de administración se oculta a quienes no tienen permiso de Administrador y la versión actual del bot aparece en el pie.
 
 ---
 
@@ -51,7 +53,7 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 ## ✨ Sugerencia automática de comandos
 
 - Si envías un link de YouTube/Spotify o escribes el nombre de una canción en el chat, el bot te sugiere automáticamente el comando `m!p` listo para copiar y pegar.
-- Solo tú verás la sugerencia y podrás cerrarla con el botón "Cerrar".
+- La sugerencia se publica como respuesta en el canal y podrás cerrarla con el botón "Cerrar".
 - Las sugerencias se autodestruyen automáticamente a los 60 segundos si no las cierras.
 - Si un administrador ejecuta `/disableautodetect`, todas las sugerencias activas del canal se eliminan inmediatamente.
 
@@ -61,7 +63,7 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 
 - Panel persistente: Siempre visible y se reposiciona automáticamente si otros mensajes lo desplazan.
 - Comandos listos para copiar: Obtén los comandos de música más usados con un click.
-- Ayuda integrada: Explicaciones claras sobre cómo usar el panel.
+- Ayuda integrada: La tarjeta de ayuda muestra las acciones disponibles para cada usuario y la versión actual del bot.
 - Fácil configuración: Solo dos comandos para activar o desactivar el sistema.
 - **Sugerencia automática de comandos por canal (opcional):**  
   Puedes activar o desactivar la sugerencia automática de comandos con `/autodetect` y `/disableautodetect` en cualquier canal.
@@ -126,8 +128,10 @@ Solo tienes que hacer click en el bloque de código del comando y pegarlo en el 
 4. Invita el bot a tu servidor con los permisos necesarios:
    - Ver canales
    - Enviar mensajes
+   - Insertar enlaces
    - Leer historial de mensajes
    - Gestionar mensajes
+   - Enviar mensajes en hilos
 
 ---
 
@@ -297,6 +301,8 @@ El bot muestra logs claros en consola sobre su estado, canales configurados y ac
 ---
 
 ## 🧩 Arquitectura y Solución Técnica
+
+La arquitectura de eventos, las políticas de rendimiento y las reglas de mantenimiento se detallan en [docs/RENDIMIENTO.md](docs/RENDIMIENTO.md).
 
 ### Flujo de eventos y actualización del panel
 

@@ -1,11 +1,20 @@
 import fs from 'fs';
 import path from 'path';
 
-const DB_DIR = path.resolve(__dirname, '../../db');
+/**
+ * Ruta absoluta a la carpeta de persistencia en archivos JSON.
+ */
+export const DB_DIR = path.resolve(__dirname, '../../db');
 
+/**
+ * Estado persistido del panel de un servidor.
+ */
 export interface BotPanelState {
+  /** ID del servidor. */
   guildId: string;
+  /** ID del canal donde está el panel. */
   channelId: string | null;
+  /** ID del último mensaje del panel. */
   lastHelpMessageId: string | null;
 }
 

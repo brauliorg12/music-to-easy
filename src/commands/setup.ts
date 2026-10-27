@@ -12,16 +12,21 @@ import {
 import { createHelpMessage } from '../utils/helpMessage';
 import { CUSTOM_IDS } from '../utils/constants';
 import { writePanelState, readPanelState } from '../utils/stateManager';
+import { isJockieBotId } from '../utils/jockieIds';
 
+/**
+ * Definición del comando `/music`.
+ */
 export const data = new SlashCommandBuilder()
   .setName('music')
   .setDescription('Activa el panel de ayuda de música en este canal.')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
+/**
+ * Activa el panel de música en el canal actual y publica la confirmación efímera.
+ * @param interaction Interacción del comando `/music`.
+ */
 export async function execute(interaction: CommandInteraction) {
-  // Log temporal para debug
-  // console.log('[DEBUG] interaction.channel:', interaction.channel);
-
   let channel: TextChannel | null = null;
   if (interaction.channel && 'type' in interaction.channel) {
     channel = interaction.channel as TextChannel;
@@ -32,7 +37,6 @@ export async function execute(interaction: CommandInteraction) {
       .catch(() => null);
     if (fetched && 'type' in fetched) {
       channel = fetched as TextChannel;
-      console.log('[DEBUG] Canal obtenido por fetch:', channel);
     }
   }
 
@@ -54,6 +58,8 @@ export async function execute(interaction: CommandInteraction) {
   }
 
   try {
+    await interaction.deferReply();
+
     // Leer estado anterior
     const prevState = interaction.guildId
       ? readPanelState(interaction.guildId)
@@ -93,10 +99,9 @@ export async function execute(interaction: CommandInteraction) {
     let lyricsEnabled = false;
     if (channel) {
       const messages = await channel.messages.fetch({ limit: 10 });
-      const musicBotId = process.env.JOCKIE_MUSIC_IDS?.split(',')[0];
       const nowPlayingMsg = messages.find(
         (msg) =>
-          msg.author.id === musicBotId &&
+          isJockieBotId(msg.author.id) &&
           msg.embeds.length > 0 &&
           (msg.embeds[0].title?.toLowerCase().includes('ahora suena') ||
             msg.embeds[0].title?.toLowerCase().includes('now playing'))
@@ -111,12 +116,10 @@ export async function execute(interaction: CommandInteraction) {
       lyricsEnabled
     );
 
-    await interaction.reply({
+    const message = await interaction.editReply({
       embeds: [embed],
-      components: components,
+      components,
     });
-
-    const message = await interaction.fetchReply();
 
     // Guardar el estado en disco
     if (interaction.guildId) {
@@ -174,15 +177,24 @@ export async function execute(interaction: CommandInteraction) {
       '❌ Hubo un error al activar el panel de música. Inténtalo de nuevo.';
 
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: errorMessage,
-        ephemeral: true,
-      });
-    } else {
-      await interaction.reply({
-        content: errorMessage,
-        ephemeral: true,
-      });
+      let deleted = false;
+      try {
+        await interaction.deleteReply();
+        deleted = true;
+      } catch {}
+      if (deleted) {
+        await interaction
+          .followUp({ content: errorMessage, ephemeral: true })
+          .catch(() => {});
+      } else {
+        await interaction.editReply({ content: errorMessage }).catch(() => {});
+      }
+      return;
     }
+
+    await interaction.reply({
+      content: errorMessage,
+      ephemeral: true,
+    });
   }
 }

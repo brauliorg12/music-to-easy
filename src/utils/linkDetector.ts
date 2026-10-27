@@ -5,15 +5,17 @@ import {
   ButtonStyle,
   EmbedBuilder,
 } from 'discord.js';
-import { CUSTOM_IDS } from '../utils/constants';
+import {
+  CUSTOM_IDS,
+  SUGGESTION_EMBED_TITLE,
+  SUGGESTION_TIMEOUT_SECONDS,
+} from '../utils/constants';
 import { readAutoDetectState } from './autoDetectState';
 import { readPanelState } from './stateManager';
 
 // Expresiones regulares para detectar links de YouTube y Spotify desde variables de entorno
 const youtubeRegex = new RegExp(process.env.YOUTUBE_REGEX ?? '', 'i');
 const spotifyRegex = new RegExp(process.env.SPOTIFY_REGEX ?? '', 'i');
-
-const SUGGESTION_TIMEOUT = 60; // segundos
 
 /**
  * Verifica si el contenido del mensaje es un link de música soportado.
@@ -83,7 +85,7 @@ export async function handleMusicLinkSuggestion(
   // Crear embed de sugerencia
   const embed = new EmbedBuilder()
     .setColor(0x2ecc71)
-    .setTitle('🎵 Sugerencia de comando')
+    .setTitle(SUGGESTION_EMBED_TITLE)
     .setDescription(
       [
         `Usa el comando para ▶️ reproducir tu enlace o búsqueda:`,
@@ -92,7 +94,7 @@ export async function handleMusicLinkSuggestion(
       ].join('\n')
     )
     .setFooter({
-      text: `Este mensaje se autodestruirá en ${SUGGESTION_TIMEOUT} segundos o puedes cerrarlo manualmente.`,
+      text: `Este mensaje se autodestruirá en ${SUGGESTION_TIMEOUT_SECONDS} segundos o puedes cerrarlo manualmente.`,
     })
     .setTimestamp();
 
@@ -116,13 +118,13 @@ export async function handleMusicLinkSuggestion(
     await sent.edit({
       embeds: [
         embed.setFooter({
-          text: `Este mensaje se autodestruirá en ${SUGGESTION_TIMEOUT} segundos o puedes cerrarlo manualmente.`,
+          text: `Este mensaje se autodestruirá en ${SUGGESTION_TIMEOUT_SECONDS} segundos o puedes cerrarlo manualmente.`,
         }),
       ],
       components: [row],
     });
 
-    // Auto-cierre tras SUGGESTION_TIMEOUT segundos si no fue cerrado manualmente
+    // Auto-cierre tras SUGGESTION_TIMEOUT_SECONDS segundos si no fue cerrado manualmente
     setTimeout(async () => {
       try {
         const fetched = await sent.channel.messages
@@ -132,12 +134,12 @@ export async function handleMusicLinkSuggestion(
         if (
           fetched &&
           fetched.author.id === message.client.user?.id &&
-          fetched.embeds[0]?.title === '🎵 Sugerencia de comando'
+          fetched.embeds[0]?.title === SUGGESTION_EMBED_TITLE
         ) {
           await fetched.delete();
         }
       } catch {}
-    }, SUGGESTION_TIMEOUT * 1000);
+    }, SUGGESTION_TIMEOUT_SECONDS * 1000);
   } catch (err) {
     // Si ocurre un error al enviar el mensaje, lo registramos en consola
     console.warn('[Advertencia] No se pudo enviar sugerencia de comando:', err);

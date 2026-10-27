@@ -3,6 +3,7 @@ import {
   lyricsMessageMap,
   lyricsActiveGroupByChannel,
 } from '../utils/lyricsMessageMap';
+import { CLOSE_LYRICS_PREFIX } from '../utils/constants';
 
 /**
  * Cierra cualquier mensaje (efímero o público) al pulsar el botón "Cerrar".
@@ -13,9 +14,9 @@ export async function execute(interaction: ButtonInteraction): Promise<void> {
   if (!channel || !channel.isTextBased()) return;
 
   try {
-    if (interaction.customId.startsWith('close_lyrics_')) {
+    if (interaction.customId.startsWith(CLOSE_LYRICS_PREFIX)) {
       // Cierre de grupo de letras: elimina todos los mensajes públicos por ID
-      const groupId = interaction.customId.replace('close_lyrics_', '');
+      const groupId = interaction.customId.replace(CLOSE_LYRICS_PREFIX, '');
       const ids = lyricsMessageMap.get(groupId) ?? [];
       for (const id of ids) {
         try {

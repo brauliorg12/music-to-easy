@@ -1,16 +1,17 @@
 import { BotClient } from './BotClient';
-import { BotPanelState, writePanelState } from '../utils/stateManager';
+import { readAllPanelStates, writePanelState } from '../utils/stateManager';
 import { cleanupAllHelpPanels } from '../utils/panelCleaner';
 import { repositionPanel } from '../utils/repositionPanel';
 import { syncPanelLyricsButton } from '../utils/panelLyricsSync';
-import { findJockieNowPlayingSong } from '../utils/activitySync';
-import { setBotActivity } from '../utils/jockiePanelActions';
+import {
+  findJockieNowPlayingSong,
+  type JockieSongInfo,
+} from '../utils/activitySync';
+import { setBotActivity } from '../services/botActivity';
 import {
   DEFAULT_BOT_STATUS,
   DEFAULT_BOT_ACTIVITY_TYPE,
 } from '../constants/botConstants';
-import fs from 'fs';
-import path from 'path';
 import { TextChannel } from 'discord.js';
 import { cleanupLyrics } from '../lyrics/lyricsCleanup';
 
@@ -21,25 +22,11 @@ import { cleanupLyrics } from '../lyrics/lyricsCleanup';
  * @param client El cliente del bot de Discord.
  */
 export async function handleStartupPanelSync(client: BotClient) {
-  const dbDir = path.resolve(__dirname, '../../db');
-  if (!fs.existsSync(dbDir)) {
-    setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE);
-    return;
-  }
-
-  const files = fs
-    .readdirSync(dbDir)
-    .filter((f) => f.startsWith('bot-state-') && f.endsWith('.json'));
-
+  const states = readAllPanelStates();
   let foundNowPlaying = false;
 
-  for (const file of files) {
+  for (const state of states) {
     try {
-      const state: BotPanelState = JSON.parse(
-        fs.readFileSync(path.join(dbDir, file), 'utf8')
-      );
-      if (!state.guildId || !state.channelId) continue;
-
       const guild = await client.guilds.fetch(state.guildId).catch(() => null);
       if (!guild) continue;
 
@@ -66,19 +53,25 @@ export async function handleStartupPanelSync(client: BotClient) {
           lastHelpMessageId: newPanel.id,
         });
 
-        await syncPanelLyricsButton(channel, state.guildId);
+        let nowPlaying: JockieSongInfo | null = null;
+        try {
+          nowPlaying = await findJockieNowPlayingSong(channel);
+        } catch (err) {
+          console.warn(
+            `[Startup] No se pudo detectar la canción en el canal #${channel.name}:`,
+            err
+          );
+        }
 
-        // Si aún no hemos encontrado una canción, buscar en este canal
-        if (!foundNowPlaying) {
-          const nowPlaying = await findJockieNowPlayingSong(channel);
-          if (nowPlaying && nowPlaying.song) {
-            const artistText =
-              nowPlaying.artists.length > 0
-                ? ` by ${nowPlaying.artists.join(', ')}`
-                : '';
-            setBotActivity(`▶️ - ${nowPlaying.song}${artistText}`, 2);
-            foundNowPlaying = true; // Marcar que ya encontramos una
-          }
+        await syncPanelLyricsButton(channel, state.guildId, nowPlaying);
+
+        if (!foundNowPlaying && nowPlaying && nowPlaying.song) {
+          const artistText =
+            nowPlaying.artists.length > 0
+              ? ` by ${nowPlaying.artists.join(', ')}`
+              : '';
+          setBotActivity(`▶️ - ${nowPlaying.song}${artistText}`, 2);
+          foundNowPlaying = true;
         }
 
         console.log(
@@ -87,7 +80,7 @@ export async function handleStartupPanelSync(client: BotClient) {
       }
     } catch (err) {
       console.warn(
-        `[Panel] No se pudo reponer el panel para el estado en ${file}:`,
+        `[Panel] No se pudo reponer el panel para el estado en el servidor ${state.guildId}:`,
         err
       );
     }

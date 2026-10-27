@@ -11,22 +11,25 @@ import {
   lyricsActiveGroupByChannel,
 } from '../utils/lyricsMessageMap';
 import { cleanupLyrics } from './lyricsCleanup';
+import {
+  cancelLyricsCleanup,
+  scheduleLyricsCleanup,
+} from './lyricsCleanupScheduler';
 import { parseJockieSongFromEmbed } from '../utils/activitySync';
 import { findLyrics } from './findLyrics';
 import { sendLyricsMessages } from './sendLyricsMessages';
 import { LyricsAPIError, LyricsTimeoutError } from '../errors/LyricsErrors';
 import { createErrorEmbed } from '../utils/errorEmbed';
-
-const jockieIds = (process.env.JOCKIE_MUSIC_IDS || '')
-  .split(',')
-  .map((id) => id.trim())
-  .filter(Boolean);
+import { isJockieBotId } from '../utils/jockieIds';
 
 /**
  * Sincroniza el panel de ayuda para habilitar el botón "Letra" cuando hay una canción sonando.
  * Actualiza el mensaje del panel en el canal correspondiente.
+ * @param channel Canal de texto donde está el panel.
+ * @param guildId ID del servidor al que pertenece el panel.
  */
 export async function onNowPlaying(channel: TextChannel, guildId: string) {
+  cancelLyricsCleanup(channel.id);
   const state = readPanelState(guildId);
   if (!state?.lastHelpMessageId) return;
   try {
@@ -37,17 +40,16 @@ export async function onNowPlaying(channel: TextChannel, guildId: string) {
 }
 
 /**
- * Programa la eliminación automática de los mensajes de letra y deshabilita el botón "Letra" en el panel tras un delay.
+ * Programa la eliminación automática de los mensajes de letra tras un delay.
  * @param channel Canal de texto donde están los mensajes de letra.
  * @param delayMs Milisegundos a esperar antes de eliminar.
  */
 export function onStop(channel: TextChannel, delayMs = 10000) {
-  setTimeout(() => cleanupLyrics(channel), delayMs);
+  scheduleLyricsCleanup(channel, delayMs);
 }
 
 /**
  * Limpia los mensajes de letra si se borra el mensaje de "Ahora suena" de Jockie Music.
- * También deshabilita el botón "Letra" en el panel.
  * @param message Mensaje borrado en Discord.
  * @param clientUserId ID del bot para identificar mensajes propios.
  */
@@ -92,6 +94,8 @@ export async function handleLyricsButton(interaction: ButtonInteraction) {
     return;
   }
 
+  cancelLyricsCleanup(channel.id);
+
   // Si ya hay letra activa, muestra el mensaje y retorna
   const activeGroupId = lyricsActiveGroupByChannel.get(channel.id);
   if (activeGroupId) {
@@ -119,7 +123,7 @@ export async function handleLyricsButton(interaction: ButtonInteraction) {
   const nowPlayingMsg = messages
     .filter(
       (msg) =>
-        jockieIds.includes(msg.author.id) &&
+        isJockieBotId(msg.author.id) &&
         msg.embeds.length > 0 &&
         msg.embeds[0].description &&
         /started playing/i.test(msg.embeds[0].description)

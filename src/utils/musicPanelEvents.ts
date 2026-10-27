@@ -2,6 +2,7 @@ import { Message, TextChannel } from 'discord.js';
 import { readPanelState } from './stateManager';
 import { onNowPlaying, onStop } from '../lyrics/LyricsManager';
 import { isRelevantMusicBotMessage } from './musicBotEventHelpers';
+import { isJockieBotId } from './jockieIds';
 
 /**
  * Procesa los mensajes relevantes de los bots de música en Discord.
@@ -17,15 +18,15 @@ import { isRelevantMusicBotMessage } from './musicBotEventHelpers';
 export async function handleMusicPanelEvents(message: Message) {
   if (!isRelevantMusicBotMessage(message)) return;
 
-  const musicBotId = process.env.JOCKIE_MUSIC_IDS?.split(',')[0];
+  const isMusicBot = isJockieBotId(message.author.id);
   const isNowPlaying =
-    message.author.id === musicBotId &&
+    isMusicBot &&
     message.embeds.length > 0 &&
     (message.embeds[0].title?.toLowerCase().includes('ahora suena') ||
       message.embeds[0].title?.toLowerCase().includes('now playing'));
 
   const isStop =
-    message.author.id === musicBotId &&
+    isMusicBot &&
     ((message.embeds.length > 0 &&
       (message.embeds[0].title?.toLowerCase().includes('nada está sonando') ||
         message.embeds[0].title?.toLowerCase().includes('not playing') ||

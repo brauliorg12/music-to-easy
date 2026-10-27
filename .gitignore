@@ -9,3 +9,9 @@
 
 # Bot State
 /db
+
+# Backups
+/backups
+
+# Plans
+/docs/plans

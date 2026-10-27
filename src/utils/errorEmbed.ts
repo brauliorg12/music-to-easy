@@ -4,7 +4,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from 'discord.js';
-import { CUSTOM_IDS } from './constants'; // Import CUSTOM_IDS
+import { CUSTOM_IDS } from './constants';
 
 /**
  * Crea un embed de error con un borde rojo y un botón de cerrar.
