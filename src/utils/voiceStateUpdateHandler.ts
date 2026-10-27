@@ -1,22 +1,13 @@
 import { VoiceState, TextChannel } from 'discord.js';
 import { readPanelState } from './stateManager';
-import {
-  deleteNowPlayingEmbed,
-  setBotActivity,
-  disableLyricsButtonInPanel,
-} from './jockiePanelActions';
-import { cleanupLyrics } from '../lyrics/lyricsCleanup';
+import { disableLyricsButtonInPanel } from './jockiePanelActions';
+import { setBotActivity } from '../services/botActivity';
+import { purgeManagedMessages } from '../services/channelCleanup';
 import {
   DEFAULT_BOT_STATUS,
   DEFAULT_BOT_ACTIVITY_TYPE,
 } from '../constants/botConstants';
-
-function getJockieBotIds(): string[] {
-  return (process.env.JOCKIE_MUSIC_IDS || '')
-    .split(',')
-    .map((id) => id.trim())
-    .filter(Boolean);
-}
+import { isJockieBotId } from './jockieIds';
 
 /**
  * Maneja el evento de actualización de estado de voz.
@@ -29,11 +20,10 @@ export async function handleVoiceStateUpdate(
   oldState: VoiceState,
   newState: VoiceState
 ) {
-  const musicBotIds = getJockieBotIds();
   const botId = oldState.id;
 
   // 1. Verificar si el usuario afectado es un bot de música configurado.
-  if (!musicBotIds.includes(botId)) {
+  if (!isJockieBotId(botId)) {
     return;
   }
 
@@ -61,9 +51,13 @@ export async function handleVoiceStateUpdate(
     console.log(
       `[VoiceUpdate] Iniciando limpieza en el canal #${channel.name} para el servidor ${guild.name}.`
     );
-    await deleteNowPlayingEmbed(channel, newState.client.user!.id);
-    await cleanupLyrics(channel);
+    await purgeManagedMessages(channel, {
+      clientUserId: newState.client.user!.id,
+      panel: false,
+      nowPlaying: true,
+      lyrics: true,
+    });
     await disableLyricsButtonInPanel(channel);
-    setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE); // Resetear actividad.
+    setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE);
   }
 }

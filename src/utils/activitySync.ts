@@ -1,20 +1,26 @@
 import { TextChannel, Message, Collection } from 'discord.js';
-import { setBotActivity } from './jockiePanelActions';
+import { isJockieBotId } from './jockieIds';
 
-function getJockieBotIds(): string[] {
-  return (process.env.JOCKIE_MUSIC_IDS || '')
-    .split(',')
-    .map((id) => id.trim())
-    .filter(Boolean);
+/**
+ * Información de la canción detectada en un anuncio de Jockie Music.
+ */
+export interface JockieSongInfo {
+  /** Título de la canción. */
+  song: string;
+  /** Primer artista detectado. */
+  artist: string;
+  /** Lista completa de artistas detectados. */
+  artists: string[];
 }
 
 /**
- * Extrae título y artista(s) del embed de Jockie Music.
- * Devuelve { song, artist, artists } o null si no se puede extraer.
+ * Extrae el título y los artistas del embed de Jockie Music.
+ * @param embedDesc Descripción del embed de Jockie Music.
+ * @returns La canción detectada o `null` si no se puede extraer.
  */
 export function parseJockieSongFromEmbed(
   embedDesc: string
-): { song: string; artist: string; artists: string[] } | null {
+): JockieSongInfo | null {
   // Soporta [**Song** **by** **Artist**] y variantes con espacios
   const mdMatch = embedDesc.match(
     /\[\*\*(.+?)\*\*\s*\*\*by\*\*\s*\*\*(.+?)\*\*\]/i
@@ -47,18 +53,18 @@ export function parseJockieSongFromEmbed(
 
 /**
  * Busca el mensaje más reciente relevante de Jockie Music en el canal.
- * Primero, verifica si el bot de Jockie está en un canal de voz.
- * Si es "Started playing ..." devuelve { song, artist, artists }, si es "There are no more tracks" o similar, devuelve null.
+ * Primero verifica si el bot de Jockie está en un canal de voz.
+ * @param channel Canal de texto donde buscar el anuncio de reproducción.
+ * @returns La canción en reproducción o `null` si no hay música activa.
  */
 export async function findJockieNowPlayingSong(
   channel: TextChannel
-): Promise<{ song: string; artist: string; artists: string[] } | null> {
-  const musicBotIds = getJockieBotIds();
+): Promise<JockieSongInfo | null> {
   const guild = channel.guild;
 
   // 1. Comprobación crítica: ¿Está el bot de música en un canal de voz?
   const isJockieInVoice = guild.members.cache.some(
-    (member) => musicBotIds.includes(member.id) && member.voice.channel
+    (member) => isJockieBotId(member.id) && member.voice.channel
   );
 
   if (!isJockieInVoice) {
@@ -80,7 +86,7 @@ export async function findJockieNowPlayingSong(
     const sorted = messages
       .filter(
         (msg) =>
-          musicBotIds.includes(msg.author.id) &&
+          isJockieBotId(msg.author.id) &&
           msg.embeds.length > 0 &&
           msg.embeds[0].description
       )
@@ -110,25 +116,4 @@ export async function findJockieNowPlayingSong(
     lastId = messages.last()?.id;
   }
   return null;
-}
-
-/**
- * Sincroniza la actividad del bot (Listening) según el mensaje de "Started playing ..." de Jockie Music en el canal.
- */
-export async function syncBotActivity(channel: TextChannel) {
-  const nowPlaying = await findJockieNowPlayingSong(channel);
-  if (nowPlaying) {
-    const { song, artist } = nowPlaying;
-    setBotActivity(`▶️ - ${song}${artist ? ` by ${artist}` : ''}`, 2);
-    console.log(
-      `[ActivitySync] setBotActivity: ▶️ - ${song}${
-        artist ? ` by ${artist}` : ''
-      }`
-    );
-  } else {
-    setBotActivity('🤖 Bot de ayuda de comandos de música', 3);
-    console.log(
-      '[ActivitySync] setBotActivity: WATCHING (no hay música activa)'
-    );
-  }
 }

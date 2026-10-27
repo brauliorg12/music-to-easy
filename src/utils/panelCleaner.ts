@@ -1,4 +1,5 @@
 import { TextChannel } from 'discord.js';
+import { isPanelEmbedMessage } from '../services/channelCleanup';
 
 /**
  * Elimina todos los mensajes de panel de ayuda ("Comandos de Música") enviados por el bot
@@ -16,11 +17,8 @@ export async function cleanupAllHelpPanels(
     const messages = await channel.messages.fetch({ limit: 100 });
 
     // Filtra TODOS los mensajes que son paneles de ayuda enviados por este bot.
-    const helpPanels = messages.filter(
-      (msg) =>
-        msg.author.id === clientUserId &&
-        msg.embeds.length > 0 &&
-        msg.embeds[0].title?.includes('Comandos de Música')
+    const helpPanels = messages.filter((msg) =>
+      isPanelEmbedMessage(msg, clientUserId)
     );
 
     if (helpPanels.size === 0) {

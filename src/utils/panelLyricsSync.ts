@@ -1,22 +1,32 @@
 import { TextChannel } from 'discord.js';
 import { readPanelState } from './stateManager';
 import { createHelpMessage } from './helpMessage';
-import { findJockieNowPlayingSong } from './activitySync';
+import {
+  findJockieNowPlayingSong,
+  type JockieSongInfo,
+} from './activitySync';
 
 /**
- * Sincroniza el estado del botón "Letra" en el panel según si hay una canción real sonando.
+ * Sincroniza el estado del botón "Letra" del panel según si hay una canción sonando.
+ * @param channel Canal de texto donde está el panel.
+ * @param guildId ID del servidor al que pertenece el panel.
+ * @param nowPlaying Canción detectada previamente. Si es `undefined` se busca en el canal;
+ * si es `null` se interpreta que no hay canción activa.
  */
 export async function syncPanelLyricsButton(
   channel: TextChannel,
-  guildId: string
+  guildId: string,
+  nowPlaying?: JockieSongInfo | null
 ) {
   try {
     const state = readPanelState(guildId);
     if (!state?.lastHelpMessageId) return;
     // Usa la misma lógica que la actividad: solo habilita si hay canción real de Jockie
-    const nowPlaying = await findJockieNowPlayingSong(channel);
-    // Si nowPlaying.artists existe, úsalo para mostrar en el panel si lo necesitas
-    const lyricsEnabled = !!nowPlaying;
+    const currentSong =
+      nowPlaying === undefined
+        ? await findJockieNowPlayingSong(channel)
+        : nowPlaying;
+    const lyricsEnabled = !!currentSong;
     const panelMsg = await channel.messages.fetch(state.lastHelpMessageId);
     const { embed, components } = createHelpMessage(
       guildId,

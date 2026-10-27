@@ -1,13 +1,19 @@
 import { SlashCommandBuilder, CommandInteraction, PermissionFlagsBits, TextChannel } from 'discord.js';
 import { writeAutoDetectState } from '../utils/autoDetectState';
+import { SUGGESTION_EMBED_TITLE } from '../utils/constants';
 
-const SUGGESTION_TITLE = '🎵 Sugerencia de comando';
-
+/**
+ * Definición del comando `/disableautodetect`.
+ */
 export const data = new SlashCommandBuilder()
   .setName('disableautodetect')
   .setDescription('Desactiva la sugerencia automática de comandos por links o nombres de canciones en este canal.')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
+/**
+ * Desactiva la sugerencia automática y elimina las sugerencias activas del canal.
+ * @param interaction Interacción del comando `/disableautodetect`.
+ */
 export async function execute(interaction: CommandInteraction) {
   const guildId = interaction.guildId;
   const channelId = interaction.channelId;
@@ -27,7 +33,7 @@ export async function execute(interaction: CommandInteraction) {
     const suggestionMessages = messages.filter(
       m =>
         m.author.id === interaction.client.user?.id &&
-        m.embeds[0]?.title === SUGGESTION_TITLE
+        m.embeds[0]?.title === SUGGESTION_EMBED_TITLE
     );
     for (const msg of suggestionMessages.values()) {
       await msg.delete().catch(() => {});

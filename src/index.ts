@@ -7,9 +7,6 @@ import { handleMusicLinkSuggestion } from './utils/linkDetector';
 import { cleanupAllSuggestions } from './utils/cleanupSuggestions';
 import { setGlobalClient } from './globalClient';
 
-// Bandera global para saber si el bot está inicializando
-export let isInitializing = true;
-
 /**
  * Valida que las variables de entorno críticas estén definidas.
  * Si falta alguna, termina el proceso con error.
@@ -37,7 +34,7 @@ function setupGracefulShutdown(bot: BotClient): void {
 /**
  * Función principal de arranque del bot.
  * - Valida variables de entorno.
- * - Crea la instancia del bot y la asigna a globalThis.
+ * - Crea la instancia del bot y la registra como cliente global.
  * - Configura el cierre limpio.
  * - Limpia sugerencias viejas al iniciar.
  * - Setea la actividad por defecto.
@@ -47,9 +44,7 @@ function setupGracefulShutdown(bot: BotClient): void {
 function main(): void {
   validateEnv();
   const bot = new BotClient();
-  setGlobalClient(bot); // NUEVO: expone el bot globalmente
-  // Asigna el bot a globalThis.client para que setBotActivity lo encuentre
-  (globalThis as any).client = bot;
+  setGlobalClient(bot);
   setupGracefulShutdown(bot);
 
   // Limpia mensajes de sugerencia de comando ("Sugerencia de comando") en todos los canales con panel activo al iniciar el bot.

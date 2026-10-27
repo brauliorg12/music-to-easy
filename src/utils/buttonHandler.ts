@@ -1,6 +1,6 @@
 import { ButtonInteraction } from 'discord.js';
 import { BotClient } from '../core/BotClient';
-import { CUSTOM_IDS } from './constants';
+import { CLOSE_LYRICS_PREFIX, CUSTOM_IDS } from './constants';
 import { handleLyricsButton } from '../lyrics/LyricsManager';
 import { execute as closeExecute } from '../interactions/close';
 
@@ -24,7 +24,7 @@ export async function handleButton(
       return;
     }
     if (
-      interaction.customId.startsWith('close_lyrics_') ||
+      interaction.customId.startsWith(CLOSE_LYRICS_PREFIX) ||
       interaction.customId === 'close'
     ) {
       await closeExecute(interaction);

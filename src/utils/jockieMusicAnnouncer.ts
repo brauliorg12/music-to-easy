@@ -8,18 +8,22 @@ import {
   deletePanel,
   sendPanel,
   sendNowPlayingEmbed,
-  deleteNowPlayingEmbed,
-  setBotActivity,
 } from './jockiePanelActions';
+import { setBotActivity } from '../services/botActivity';
+import { purgeManagedMessages } from '../services/channelCleanup';
 import { isRelevantMusicBotMessage } from './musicBotEventHelpers';
 import {
   DEFAULT_BOT_STATUS,
   DEFAULT_BOT_ACTIVITY_TYPE,
 } from '../constants/botConstants';
-import { cleanupLyrics } from '../lyrics/lyricsCleanup';
+import { cancelLyricsCleanup } from '../lyrics/lyricsCleanupScheduler';
 
 const currentlyPlayingLock = new Set<string>();
 
+/**
+ * Escribe un log con la hora local.
+ * @param msg Mensaje a registrar.
+ */
 function logWithTime(msg: string) {
   const now = new Date().toLocaleTimeString('es-AR', { hour12: false });
   console.log(`[MusicToEasy][${now}] ${msg}`);
@@ -45,7 +49,7 @@ export async function handleJockieMusicAnnouncement(
   text = text.replace(/\s+/g, ' ').trim();
 
   let panelChannel: TextChannel | null = null;
-  let panelState = readPanelState(guild.id);
+  const panelState = readPanelState(guild.id);
   if (panelState?.channelId) {
     const channel = guild.channels.cache.get(panelState.channelId);
     if (channel && channel.isTextBased() && channel instanceof TextChannel) {
@@ -63,12 +67,14 @@ export async function handleJockieMusicAnnouncement(
     setBotActivity(DEFAULT_BOT_STATUS, DEFAULT_BOT_ACTIVITY_TYPE);
 
     if (panelChannel) {
-      // Limpia el embed de "Ahora Suena" y las letras de la canción anterior.
-      await deleteNowPlayingEmbed(panelChannel, message.client.user!.id);
-      await cleanupLyrics(panelChannel);
+      await purgeManagedMessages(panelChannel, {
+        clientUserId: message.client.user!.id,
+        panel: true,
+        nowPlaying: true,
+        lyrics: true,
+      });
 
       // Reenvía el panel de control limpio.
-      await deletePanel(panelChannel);
       await sendPanel(panelChannel, guild.id);
     }
     return true;
@@ -102,21 +108,25 @@ export async function handleJockieMusicAnnouncement(
         // Cambia el estado del bot a "▶️ - <canción> by <artista>" (tipo Listening)
         setBotActivity(`▶️ - ${song}${artist ? ` by ${artist}` : ''}`, 2);
 
-        // Limpia el embed de "Ahora Suena" y las letras de la canción anterior.
-        await deleteNowPlayingEmbed(panelChannel, message.client.user!.id);
-        await cleanupLyrics(panelChannel);
+        cancelLyricsCleanup(panelChannel.id);
+
+        await purgeManagedMessages(panelChannel, {
+          clientUserId: message.client.user!.id,
+          panel: true,
+          nowPlaying: true,
+          lyrics: true,
+        });
 
         // Reenvía el panel y el nuevo embed de "Ahora Suena".
-        await deletePanel(panelChannel);
         await sendPanel(panelChannel, guild.id);
-        await sendNowPlayingEmbed(panelChannel, after, message.client);
+        await sendNowPlayingEmbed(panelChannel, after);
 
         // Envía el embed de "Ahora Suena" también al canal original si es diferente.
         if (
           message.channel instanceof TextChannel &&
           message.channel.id !== panelChannel.id
         ) {
-          await sendNowPlayingEmbed(message.channel, after, message.client);
+          await sendNowPlayingEmbed(message.channel, after);
         }
         return true;
       }

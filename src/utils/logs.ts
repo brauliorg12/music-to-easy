@@ -1,6 +1,8 @@
 import { Client, Guild } from 'discord.js';
-import BotState from './botState';
 
+/**
+ * Imprime el logo del bot en la consola de arranque.
+ */
 export function printLogo() {
   console.log(`
 \x1b[36m  
@@ -11,38 +13,25 @@ export function printLogo() {
 }
 
 /**
- * Imprime en consola información relevante al iniciar el bot:
- * - Tag del usuario del bot
- * - Fecha y hora local y UTC de inicio
- * - Canal de ayuda configurado (si existe)
- *
+ * Imprime en consola la información de inicio: usuario, fecha y hora local y UTC.
  * @param client Instancia del cliente de Discord.
  */
 export function printStartupInfo(client: Client) {
   const userTag = client.user?.tag;
-  const botState = BotState.getInstance();
-  const channelId = botState.getChannel();
-  let channelInfo = 'Canal configurado: (no configurado)';
-  if (channelId) {
-    const channel = client.channels.cache.get(channelId);
-    if (channel && 'name' in channel) {
-      channelInfo = `Canal configurado: #${channel.name} (${channel.id})`;
-    } else {
-      channelInfo = `Canal configurado: (no encontrado, id=${channelId})`;
-    }
-  }
   const now = new Date();
   const fechaLocal = now.toLocaleString();
   const fechaUTC = now.toISOString();
 
-  // Imprime la información de inicio en consola
   console.log('\x1b[32m%s\x1b[0m', '🟢 Conectado');
   console.log(`[App] Nombre: Music to Easy`);
   console.log(`[App] Usuario Discord: ${userTag}`);
   console.log(`[App] Inicio: ${fechaLocal} (local) | ${fechaUTC} (UTC)`);
-  console.log(`[App] ${channelInfo}`);
 }
 
+/**
+ * Imprime en consola los servidores donde está conectado el bot.
+ * @param client Instancia del cliente de Discord.
+ */
 export function logServerInfo(client: Client) {
   const guilds = client.guilds.cache;
   const guildCount = guilds.size;

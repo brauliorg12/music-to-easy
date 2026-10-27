@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-
-// Carpeta para persistencia de estados de autodetección por canal
-const DB_DIR = path.join(__dirname, '../../db');
+import { DB_DIR } from './stateManager';
 
 /**
  * Asegura que la carpeta de base de datos exista.

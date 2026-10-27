@@ -1,10 +1,18 @@
 import { TextChannel, Message } from 'discord.js';
 import { createCloseButtonRow } from '../utils/closeButton';
-import { LYRICS_EMBED_FOOTER_PREFIX } from './lyricsCleanup';
+import { LYRICS_CONFIRMATION_EMBED_TITLE } from '../utils/constants';
+import { LYRICS_EMBED_FOOTER_PREFIX } from './lyricsConstants';
 
 /**
  * Envía los embeds de la letra y el mensaje de confirmación al canal.
- * Devuelve los IDs de los mensajes enviados.
+ * @param channel Canal de texto donde se publicará la letra.
+ * @param title Título de la canción.
+ * @param artists Artistas de la canción.
+ * @param lyrics Letra completa de la canción.
+ * @param userTag Nombre visible de quien solicitó la letra.
+ * @param userAvatar URL del avatar de quien solicitó la letra.
+ * @param groupId Identificador del grupo de mensajes de la letra.
+ * @returns Los IDs de los mensajes enviados.
  */
 export async function sendLyricsMessages(
   channel: TextChannel,
@@ -43,7 +51,7 @@ export async function sendLyricsMessages(
       embeds: [
         {
           color: 0x00ff7f,
-          title: 'Letra publicada en el canal',
+          title: LYRICS_CONFIRMATION_EMBED_TITLE,
           description: `[Ver mensaje](${firstMsg.url})
 
 ${

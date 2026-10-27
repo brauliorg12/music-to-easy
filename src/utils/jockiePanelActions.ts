@@ -1,71 +1,40 @@
-import { Client, TextChannel, EmbedBuilder } from 'discord.js';
+import { TextChannel, EmbedBuilder } from 'discord.js';
 import { createHelpMessage } from './helpMessage';
 import { writePanelState, readPanelState } from './stateManager';
-import { BotClient } from '../core/BotClient'; // Added import
+import { isJockieBotId } from './jockieIds';
+import { getClient } from '../globalClient';
+import { cleanupAllHelpPanels } from './panelCleaner';
+import { NOW_PLAYING_EMBED_TITLE } from './constants';
 
 /**
- * Declara el tipo de client en globalThis para evitar error TS7017.
+ * Elimina todos los paneles de ayuda existentes en el canal.
+ * @param channel Canal de texto donde se limpiarán los paneles.
  */
-declare global {
-  // Ajusta el tipo si tienes una clase personalizada de cliente
-  var client: BotClient | undefined; // Changed type to BotClient
-}
-
-/**
- * Cambia el estado del bot (actividad) en Discord.
- * @param text Texto a mostrar como estado.
- * @param type Tipo de actividad (0=Playing, 2=Listening, 3=Watching, etc.)
- */
-export function setBotActivity(songText: string, type: number = 2) {
-  // songText puede ser: "▶️ - Lloraras by Dimension Latina, Oscar de Leon"
-  const client = globalThis.client;
-  console.log(
-    '[MusicToEasy][DEBUG] Intentando setear actividad:',
-    songText,
-    'type:',
-    type
-  );
-  if (client && client.user) {
-    client.user.setActivity(songText, { type });
-    client.currentActivityType = type;
-    console.log(
-      '[MusicToEasy][DEBUG] Actividad seteada correctamente. currentActivityType:',
-      client.currentActivityType
-    );
-  } else {
-    console.warn(
-      '[MusicToEasy][DEBUG] No se pudo setear actividad: client o client.user no disponible.'
-    );
-  }
-}
-
-import { cleanupAllHelpPanels } from './panelCleaner'; // Add this import
-
-// ... (existing setBotActivity function) ...
-
-export async function deletePanel(
-  channel: TextChannel,
-) {
-  // Instead of trying to delete a specific message, clean up all existing panels
+export async function deletePanel(channel: TextChannel) {
+  // Limpia todos los paneles existentes en lugar de buscar uno puntual.
   await cleanupAllHelpPanels(channel.client.user!.id, channel);
   console.log('[MusicToEasy] Paneles anteriores limpiados.');
 }
 
+/**
+ * Envía el panel de comandos al canal y persiste su ID como estado del servidor.
+ * @param channel Canal de texto donde se enviará el panel.
+ * @param guildId ID del servidor al que pertenece el panel.
+ * @param lyricsEnabled Fuerza el estado del botón "Letra"; si se omite se deduce de la actividad actual.
+ * @returns El mensaje del panel enviado.
+ */
 export async function sendPanel(
   channel: TextChannel,
   guildId: string,
   lyricsEnabled?: boolean
 ) {
-  const client = globalThis.client;
+  const client = getClient();
   let finalLyricsEnabled = lyricsEnabled;
 
   if (finalLyricsEnabled === undefined) {
     // Si no se especifica, decidir en base a la actividad del bot.
     // Tipo 2 es "Listening to", lo que implica que hay una canción.
     finalLyricsEnabled = client?.currentActivityType === 2;
-    console.log(
-      `[MusicToEasy][DEBUG] lyricsEnabled no especificado, decidido por actividad: ${finalLyricsEnabled} (tipo: ${client?.currentActivityType})`
-    );
   }
 
   const { embed, components } = createHelpMessage(
@@ -83,23 +52,20 @@ export async function sendPanel(
   return newPanel;
 }
 
+/**
+ * Envía el embed "¡Ahora suena!" con la descripción de la canción actual.
+ * @param channel Canal de texto donde se enviará el embed.
+ * @param after Descripción original de la canción tal como la envió Jockie Music.
+ */
 export async function sendNowPlayingEmbed(
   channel: TextChannel,
-  after: string,
-  client: Client
+  after: string
 ) {
   const guild = channel.guild;
-  const jockieIds = (process.env.JOCKIE_MUSIC_IDS || '')
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean);
-
-  // Log de depuración solo para los IDs configurados (puedes quitarlo si no lo necesitas)
-  console.log('[MusicToEasy][DEBUG] JOCKIE_MUSIC_IDS:', jockieIds);
 
   let jockieName = '';
   const jockieMember = guild.members.cache.find((m) =>
-    jockieIds.includes(m.user.id)
+    isJockieBotId(m.user.id)
   );
   if (jockieMember) {
     jockieName = `${jockieMember.displayName} está reproduciendo música`;
@@ -107,65 +73,15 @@ export async function sendNowPlayingEmbed(
     jockieName = 'Jockie Music está reproduciendo música';
   }
 
-  // Extrae nombre y artista para el estado del bot (limpio)
-  let song = after;
-  let artist = '';
-  // Intenta extraer del formato "[**Song** **by** **Artist**](link)"
-  const match = after.match(/\[\*\*(.*?)\*\* by \*\*(.*?)\*\*\]/i);
-  if (match) {
-    song = match[1].trim();
-    artist = match[2].trim();
-  } else {
-    // Alternativa: busca "Song by Artist" y limpia markdown y links
-    let clean = after
-      .replace(/\[|\]|\*\*|\(|\)|https?:\/\/\S+/g, '') // quita corchetes, asteriscos, paréntesis, links
-      .replace(/\s{2,}/g, ' ') // espacios dobles
-      .trim();
-    const songArtistMatch = clean.match(/^(.*?)\s+by\s+(.*)$/i);
-    if (songArtistMatch) {
-      song = songArtistMatch[1].trim();
-      artist = songArtistMatch[2].trim();
-    } else {
-      song = clean;
-      artist = '';
-    }
-  }
-
-  // Cambia el estado del bot a "▶️ - <canción> by <artista>"
-  setBotActivity(`▶️ - ${song}${artist ? ` by ${artist}` : ''}`);
-
   const playingEmbed = new EmbedBuilder()
     .setColor(0x1db954)
-    .setTitle('🎶 ¡Ahora suena!')
+    .setTitle(NOW_PLAYING_EMBED_TITLE)
     .setDescription(after)
     .setFooter({ text: jockieName });
   await channel.send({ embeds: [playingEmbed] });
   console.log(
     '[MusicToEasy] Embed "¡Ahora suena!" enviado en canal del panel.'
   );
-}
-
-export async function deleteNowPlayingEmbed(
-  channel: TextChannel,
-  clientUserId: string
-) {
-  try {
-    // Busca hasta 100 mensajes para asegurar que no quede ninguno viejo
-    const messages = await channel.messages.fetch({ limit: 100 });
-    const nowPlayingMessages = messages.filter(
-      (m) =>
-        m.author.id === clientUserId &&
-        m.embeds[0]?.title === '🎶 ¡Ahora suena!'
-    );
-    for (const msg of nowPlayingMessages.values()) {
-      await msg.delete();
-      console.log('[MusicToEasy] Mensaje "¡Ahora suena!" eliminado.');
-    }
-  } catch (err) {
-    console.warn(
-      '[MusicToEasy] No se pudo eliminar el mensaje "¡Ahora suena!" (puede que ya no exista).'
-    );
-  }
 }
 
 /**

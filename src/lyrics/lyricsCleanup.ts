@@ -3,9 +3,7 @@ import {
   lyricsMessageMap,
   lyricsActiveGroupByChannel,
 } from '../utils/lyricsMessageMap';
-
-// Identificador único para los embeds de letras.
-export const LYRICS_EMBED_FOOTER_PREFIX = 'lyrics-embed-id:';
+import { isLyricsEmbedMessage } from '../services/channelCleanup';
 
 /**
  * Limpia de forma robusta todos los mensajes de letras de un canal.
@@ -43,14 +41,8 @@ export async function cleanupLyrics(channel: TextChannel) {
   try {
     const messages = await channel.messages.fetch({ limit: 50 });
     const orphanMessages = messages.filter((m) => {
-      if (m.author.id !== m.client.user?.id) return false;
-      const embed = m.embeds[0];
-      if (!embed) return false;
-      const hasLyricsFooter = embed.footer?.text?.includes(
-        LYRICS_EMBED_FOOTER_PREFIX
-      );
-      const isConfirmationEmbed = embed.title === 'Letra publicada en el canal';
-      return hasLyricsFooter || isConfirmationEmbed;
+      const clientUserId = m.client.user?.id;
+      return clientUserId ? isLyricsEmbedMessage(m, clientUserId) : false;
     });
 
     if (orphanMessages.size > 0) {

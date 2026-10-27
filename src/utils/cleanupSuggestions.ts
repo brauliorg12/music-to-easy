@@ -1,8 +1,10 @@
 import { BotClient } from '../core/BotClient';
 import { TextChannel } from 'discord.js';
 import { readPanelState } from './stateManager';
-
-const SUGGESTION_TIMEOUT = 60; // segundos
+import {
+  SUGGESTION_EMBED_TITLE,
+  SUGGESTION_TIMEOUT_SECONDS,
+} from './constants';
 
 /**
  * Elimina todos los mensajes de sugerencia de comando ("Sugerencia de comando") que el bot haya dejado en los canales al iniciar.
@@ -24,8 +26,8 @@ export async function cleanupAllSuggestions(bot: BotClient): Promise<void> {
       const suggestionMessages = messages.filter(
         (m) =>
           m.author.id === bot.user?.id &&
-          m.embeds[0]?.title === '🎵 Sugerencia de comando' &&
-          m.createdTimestamp < now - SUGGESTION_TIMEOUT * 1000 // Solo las viejas
+          m.embeds[0]?.title === SUGGESTION_EMBED_TITLE &&
+          m.createdTimestamp < now - SUGGESTION_TIMEOUT_SECONDS * 1000 // Solo las viejas
       );
       for (const msg of suggestionMessages.values()) {
         await msg.delete().catch(() => {});
