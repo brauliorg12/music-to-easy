@@ -17,6 +17,7 @@ import {
   DEFAULT_BOT_ACTIVITY_TYPE,
 } from '../constants/botConstants';
 import { cancelLyricsCleanup } from '../lyrics/lyricsCleanupScheduler';
+import { parseJockieActivityTrack } from './activitySync';
 
 const currentlyPlayingLock = new Set<string>();
 
@@ -95,14 +96,7 @@ export async function handleJockieMusicAnnouncement(
     try {
       const after = match[1].trim();
       if (after) {
-        // Extrae nombre y artista para el log
-        let song = after;
-        let artist = '';
-        const songArtistMatch = after.match(/^(.*?)\s+by\s+(.*)$/i);
-        if (songArtistMatch) {
-          song = songArtistMatch[1].trim();
-          artist = songArtistMatch[2].trim();
-        }
+        const { song, artist } = parseJockieActivityTrack(after);
         logWithTime(`▶️ Escuchando: "${song}"${artist ? ` by ${artist}` : ''}`);
 
         // Cambia el estado del bot a "▶️ - <canción> by <artista>" (tipo Listening)
