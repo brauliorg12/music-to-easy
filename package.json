@@ -1,6 +1,6 @@
 {
   "name": "music-to-easy",
-  "version": "1.12.0",
+  "version": "1.12.1",
   "description": "A Discord bot that makes music commands easy with buttons and intuitive interface",
   "main": "dist/index.js",
   "scripts": {
