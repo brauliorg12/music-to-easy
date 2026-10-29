@@ -14,6 +14,52 @@ export interface JockieSongInfo {
 }
 
 /**
+ * Canción y artista listos para mostrar en la actividad del bot.
+ */
+export interface JockieActivityTrack {
+  /** Título limpio de la canción. */
+  song: string;
+  /** Artista limpio de la canción. */
+  artist: string;
+}
+
+/**
+ * Limpia el texto de una canción de Jockie para usarlo en la actividad.
+ *
+ * Quita markdown, links, URLs y emojis personalizados sin volver a llamar a
+ * `setActivity`. El texto resultante conserva paréntesis y otros detalles del
+ * título.
+ *
+ * @param raw Texto original de la canción.
+ * @returns Canción y artista limpios.
+ */
+export function parseJockieActivityTrack(raw: string): JockieActivityTrack {
+  const cleaned = raw
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<a?:[^>]+>/g, '')
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/\*\*|\*|`/g, '')
+    .replace(/[[\]]/g, '')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned) {
+    return { song: 'Canción desconocida', artist: '' };
+  }
+
+  const match = cleaned.match(/^(.*?)\s+by\s+(.*)$/i);
+  if (!match || !match[1].trim()) {
+    return { song: cleaned, artist: '' };
+  }
+
+  return {
+    song: match[1].trim(),
+    artist: match[2].trim(),
+  };
+}
+
+/**
  * Extrae el título y los artistas del embed de Jockie Music.
  * @param embedDesc Descripción del embed de Jockie Music.
  * @returns La canción detectada o `null` si no se puede extraer.
